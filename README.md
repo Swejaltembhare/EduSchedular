@@ -99,7 +99,8 @@ JWT_SECRET=your_secret_key
 
 ## 📸 Screenshots
 
-*Add your project screenshots here*
+<img width="1888" height="914" alt="image" src="https://github.com/user-attachments/assets/89345939-f710-4ba5-8956-70aa06d44c72" />
+
 
 ---
 
