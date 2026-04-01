@@ -1,123 +1,79 @@
-# 🚀 EduSchedular
+# EduSchedular
 
-EduSchedular is a full-stack web application designed to manage academic scheduling, subjects, classrooms, and faculty efficiently.
+EduSchedular is a full-stack web application built to simplify academic scheduling and institutional management. It helps educational institutions efficiently manage timetables, subjects, classrooms, faculty, and administrative activities through a centralized digital platform.
 
----
+## Features
 
-## 🌟 Overview
+- Create and manage academic timetables
+- Manage classrooms and student batches
+- Add, edit, and organize subjects
+- Faculty management system
+- Interactive dashboard with analytics and recent activities
+- Admin authentication and access control
 
-EduSchedular helps institutions organize and manage their academic structure digitally. It allows users to create timetables, manage subjects, assign faculty, and monitor recent activities through an interactive dashboard.
+## Tech Stack
 
----
-
-## ✨ Features
-
-* 📅 Create and manage timetables
-* 🏫 Manage classrooms and batches
-* 📘 Add and organize subjects
-* 👩‍🏫 Faculty management system
-* 📊 Dashboard with analytics and recent activities
-* 🔐 User authentication (Admin access)
-
----
-
-## 🛠️ Tech Stack
-
-| Technology | Usage            |
-| ---------- | ---------------- |
-| React      | Frontend UI      |
-| Vite       | Build tool       |
-| Node.js    | Backend runtime  |
+| Technology | Usage |
+|------------|-------|
+| React | Frontend UI |
+| Vite | Build tool |
+| Node.js | Backend runtime |
 | Express.js | Server framework |
-| MongoDB    | Database         |
+| MongoDB | Database |
 
----
+## Project Structure
 
-## 📁 Folder Structure
-
-```
+```bash
 EduSchedular/
-│
-├── backend/        # APIs and server logic
-├── frontend/       # React frontend
+├── backend/     # APIs and server logic
+├── frontend/    # React frontend
 └── package.json
 ```
 
----
-
-## ⚙️ Installation & Setup
-
-### Clone the repository
-
-```
+## Installation & Setup
+1. Clone the repository
 git clone https://github.com/Swejaltembhare/EduSchedular.git
-```
-
-### Install dependencies
-
-#### Backend
-
-```
+cd EduSchedular
+2. Install dependencies
+Backend
 cd backend
 npm install
-```
-
-#### Frontend
-
-```
+Frontend
 cd frontend
 npm install
-```
 
----
-
-## ▶️ Run the Project
-
-### Start Backend
-
-```
+## Run the Project
+Start Backend
+cd backend
 npm start
-```
-
-### Start Frontend
-
-```
+Start Frontend
+cd frontend
 npm run dev
-```
 
----
+## Environment Variables
 
-## 🔐 Environment Variables
-
-Create `.env` file in backend:
+Create a .env file inside the backend folder:
 
 PORT=5000
-MONGO_URI=your_mongodb_connection
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 
----
+## Screenshots
+<img width="1888" height="914" alt="EduSchedular Dashboard" src="https://github.com/user-attachments/assets/89345939-f710-4ba5-8956-70aa06d44c72" />
+<img width="1894" height="926" alt="image" src="https://github.com/user-attachments/assets/b9b400bc-6b5e-45b9-a3dd-d5ce31e8a629" />
+<img width="1883" height="910" alt="image" src="https://github.com/user-attachments/assets/1d70a616-740e-4a3f-9f0f-dce4aeed0585" />
 
-## 📸 Screenshots
-
-<img width="1888" height="914" alt="image" src="https://github.com/user-attachments/assets/89345939-f710-4ba5-8956-70aa06d44c72" />
 
 
----
+## Future Improvements
+Mobile responsiveness
+Advanced analytics
 
-## 🚧 Future Improvements
+## Author
 
-* 📱 Mobile responsiveness
-* 📊 Advanced analytics
-
----
-
-## 👨‍💻 Author
-
-**Swejal Tembhare**
+Swejal Tembhare
 GitHub: https://github.com/Swejaltembhare
 
----
+## Support
 
-## ⭐ Support
-
-If you like this project, give it a ⭐ on GitHub!
+If you like this project, give it a ⭐ on GitHub.
