@@ -1,4 +1,3 @@
-// frontend/src/context/SuggestionContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { suggestionService } from "../services/suggestionService";
 import { useAuth } from "./AuthContext";

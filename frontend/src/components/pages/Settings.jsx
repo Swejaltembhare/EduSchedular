@@ -1,4 +1,3 @@
-// export default Settings;
 import React, { useState, useEffect } from "react";
 import { useSettings } from "../../context/SettingsContext";
 

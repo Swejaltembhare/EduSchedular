@@ -1,4 +1,3 @@
-// backend/routes/supportRoutes.js
 import express from "express";
 import SupportTicket from "../models/SupportTicket.js";
 import emailService from "../services/emailService.js";
@@ -7,18 +6,15 @@ const router = express.Router();
 
 // Create support ticket
 router.post("/tickets", async (req, res) => {
-  console.log("📨 Received POST request to /tickets");
-  console.log("Request body:", req.body);
-
   try {
     const { name, email, subject, message, urgencyLevel } = req.body;
 
     // Validation
     if (!name || !email || !subject || !message) {
-      console.log("❌ Validation failed: Missing fields");
+      console.log("Validation failed: Missing fields");
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields: name, email, subject, message"
+        message: "Please provide all required fields: name, email, subject, message",
       });
     }
 
@@ -32,16 +28,30 @@ router.post("/tickets", async (req, res) => {
     });
 
     await ticket.save();
-    console.log("✅ Ticket created:", ticket.ticketNumber);
+    console.log("Ticket created:", ticket.ticketNumber);
 
-    // Try to send emails (don't fail if email fails)
+    // Send emails (don't fail if email fails)
+    const emailResults = {
+      userConfirmation: false,
+      adminNotification: false
+    };
+
     try {
-      await emailService.sendSupportConfirmation(ticket);
-      await emailService.sendSupportNotification(ticket);
-      console.log("✅ Confirmation emails sent");
+      // 1. Send confirmation to USER (who submitted the ticket)
+      const userResult = await emailService.sendSupportConfirmation(ticket);
+      emailResults.userConfirmation = userResult.success;
+      console.log(`User confirmation email sent to ${ticket.email}:`, userResult.success);
     } catch (emailError) {
-      console.error("⚠️ Email sending failed:", emailError.message);
-      // Don't fail the request if email fails
+      console.error("Failed to send user confirmation email:", emailError.message);
+    }
+
+    try {
+      // 2. Send notification to ADMIN (supporteduschedular@gmail.com)
+      const adminResult = await emailService.sendSupportNotification(ticket);
+      emailResults.adminNotification = adminResult.success;
+      console.log("Admin notification email sent:", adminResult.success);
+    } catch (emailError) {
+      console.error("Failed to send admin notification email:", emailError.message);
     }
 
     res.status(201).json({
@@ -51,6 +61,7 @@ router.post("/tickets", async (req, res) => {
         number: ticket.ticketNumber,
         status: ticket.status,
       },
+      emailStatus: emailResults
     });
   } catch (error) {
     console.error("❌ Error creating support ticket:", error);

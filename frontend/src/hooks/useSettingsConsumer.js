@@ -1,4 +1,3 @@
-// frontend/src/hooks/useSettingsConsumer.js
 import { useSettings } from "../context/SettingsContext";
 import { useMemo } from "react";
 

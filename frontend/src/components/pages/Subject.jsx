@@ -1,4 +1,3 @@
-// classroom/frontend/src/components/pages/Subject.jsx
 import React, { useState, useEffect } from "react";
 import { subjectAPI } from "../../services/api";
 

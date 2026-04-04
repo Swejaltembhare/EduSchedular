@@ -193,14 +193,6 @@ const getTimetableStatistics = async () => {
       activeTimetables = totalTimetables;
     }
 
-    // console.log('Timetable stats details:', {
-    //   totalTimetables,
-    //   activeTimetables,
-    //   draftTimetables,
-    //   archivedTimetables,
-    //   rawStatuses: timetables.map(t => ({ name: t.name, status: t.status }))
-    // });
-
     return {
       totalTimetables,
       activeTimetables,

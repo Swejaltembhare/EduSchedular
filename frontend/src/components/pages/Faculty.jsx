@@ -1,4 +1,3 @@
-// classroom/frontend/src/components/pages/Faculty.jsx
 import React, { useState, useEffect } from "react";
 import { facultyAPI } from "../../services/api";
 

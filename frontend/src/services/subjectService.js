@@ -1,9 +1,5 @@
 import axios from 'axios';
 
-// Choose the correct environment variable based on your setup:
-// For Vite: import.meta.env.VITE_API_URL
-// For React: process.env.REACT_APP_API_URL
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 class SubjectService {

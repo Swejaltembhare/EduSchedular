@@ -155,7 +155,7 @@ const Contact = () => {
                 href="mailto:support@eduscheduler.com?subject=Support Request&body=Hello, I need help with..."
                 className="text-blue-600 dark:text-blue-400 font-medium mb-2 hover:underline inline-block"
               >
-                support@eduscheduler.com
+                support@eduschedular.com
               </a>
               <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1 mt-2">
                 <i className="fas fa-clock text-gray-400 text-xs"></i>

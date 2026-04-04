@@ -1,4 +1,3 @@
-// classroom/backend/controllers/settingsController.js
 import Settings from "../models/Settings.js";
 import User from "../models/User.js";
 

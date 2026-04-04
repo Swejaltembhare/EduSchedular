@@ -171,7 +171,6 @@ import Profile from "./components/pages/Profile";
 import Faculty from "./components/pages/Faculty";
 import Classroom from "./components/pages/Classroom";
 import StudentBatches from "./components/pages/StudentBatches";
-import Reports from "./components/pages/Reports";
 import Settings from "./components/pages/Settings";
 import Suggestions from "./components/pages/Suggestions";
 import Contact from "./components/pages/Contact";
@@ -338,15 +337,6 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <StudentBatches />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute role="admin">
-                <Reports />
               </ProtectedRoute>
             }
           />

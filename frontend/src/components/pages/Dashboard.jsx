@@ -1,4 +1,3 @@
-// classroom/frontend/src/components/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { dashboardAPI } from '../../services/api';
 import {
