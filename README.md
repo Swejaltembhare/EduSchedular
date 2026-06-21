@@ -69,7 +69,7 @@ JWT_SECRET=your_secret_key
 Mobile responsiveness
 Advanced analytics
 
-## Authors
+## Author
 
 Swejal Tembhare, Arti Thakur, Sapna Choudhari
 
