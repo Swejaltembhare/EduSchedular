@@ -32,7 +32,7 @@ const Timetable = () => {
     "13:30-14:00",
     "14:00-15:00",
     "15:00-16:00",
-    "16:00-17:00"
+    "16:00-17:00",
   ];
 
   // New timetable form
@@ -78,7 +78,8 @@ const Timetable = () => {
   const [showParallelForm, setShowParallelForm] = useState(false);
   const [parallelClasses, setParallelClasses] = useState([]);
   const [showTimeSlotDropdown, setShowTimeSlotDropdown] = useState(false);
-  const [showBreakTimeSlotDropdown, setShowBreakTimeSlotDropdown] = useState(false);
+  const [showBreakTimeSlotDropdown, setShowBreakTimeSlotDropdown] =
+    useState(false);
 
   // Filtered data
   const [batchSubjects, setBatchSubjects] = useState([]);
@@ -170,7 +171,8 @@ const Timetable = () => {
     return timeSlotsList[index + 1];
   };
 
-  const timeSlotRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]-([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  const timeSlotRegex =
+    /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]-([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
   const batchDivisionRequiredTypes = ["Lab"];
 
   const getBreakIcon = (breakName) => {
@@ -244,7 +246,8 @@ const Timetable = () => {
       setLoading(true);
 
       const timetablesRes = await axios.get(`${API_URL}/timetables`);
-      const timetablesData = timetablesRes.data?.data || timetablesRes.data || [];
+      const timetablesData =
+        timetablesRes.data?.data || timetablesRes.data || [];
 
       const batchesRes = await axios.get(`${API_URL}/batches`);
       let batchesData = [];
@@ -255,7 +258,8 @@ const Timetable = () => {
       }
 
       const classroomsRes = await axios.get(`${API_URL}/classrooms`);
-      const classroomsData = classroomsRes.data?.data || classroomsRes.data || [];
+      const classroomsData =
+        classroomsRes.data?.data || classroomsRes.data || [];
 
       let facultiesData = [];
       try {
@@ -325,7 +329,10 @@ const Timetable = () => {
                 sub.semester === `Semester ${currentSemester}`,
             );
           }
-        } else if (selectedBatch.subjects && Array.isArray(selectedBatch.subjects)) {
+        } else if (
+          selectedBatch.subjects &&
+          Array.isArray(selectedBatch.subjects)
+        ) {
           subjectsForBatch = selectedBatch.subjects;
         }
 
@@ -361,19 +368,26 @@ const Timetable = () => {
 
   useEffect(() => {
     if (scheduleEntry.subject) {
-      const selectedSubject = subjects.find((s) => s._id === scheduleEntry.subject);
+      const selectedSubject = subjects.find(
+        (s) => s._id === scheduleEntry.subject,
+      );
 
       if (!selectedSubject) {
         setFilteredFaculty([]);
         return;
       }
 
-      const subjectCode = selectedSubject.subjectCode || selectedSubject.code || selectedSubject.name;
+      const subjectCode =
+        selectedSubject.subjectCode ||
+        selectedSubject.code ||
+        selectedSubject.name;
 
       const facultyForSubject = faculties.filter(
         (faculty) =>
           Array.isArray(faculty.subjects) &&
-          faculty.subjects.some((sub) => subjectCode.toLowerCase().includes(sub.toLowerCase())),
+          faculty.subjects.some((sub) =>
+            subjectCode.toLowerCase().includes(sub.toLowerCase()),
+          ),
       );
 
       setFilteredFaculty(facultyForSubject);
@@ -389,19 +403,26 @@ const Timetable = () => {
 
   useEffect(() => {
     if (parallelEntry.subject) {
-      const selectedSubject = subjects.find((s) => s._id === parallelEntry.subject);
+      const selectedSubject = subjects.find(
+        (s) => s._id === parallelEntry.subject,
+      );
 
       if (!selectedSubject) {
         setFilteredParallelFaculty([]);
         return;
       }
 
-      const subjectCode = selectedSubject.subjectCode || selectedSubject.code || selectedSubject.name;
+      const subjectCode =
+        selectedSubject.subjectCode ||
+        selectedSubject.code ||
+        selectedSubject.name;
 
       const facultyForSubject = faculties.filter(
         (faculty) =>
           Array.isArray(faculty.subjects) &&
-          faculty.subjects.some((sub) => subjectCode.toLowerCase().includes(sub.toLowerCase())),
+          faculty.subjects.some((sub) =>
+            subjectCode.toLowerCase().includes(sub.toLowerCase()),
+          ),
       );
 
       setFilteredParallelFaculty(facultyForSubject);
@@ -424,7 +445,10 @@ const Timetable = () => {
       }));
     } else {
       if (scheduleEntry.batchDivision && selectedBatchDetails?.totalStudents) {
-        const count = getStudentCountForDivision(scheduleEntry.batchDivision, selectedBatchDetails.totalStudents);
+        const count = getStudentCountForDivision(
+          scheduleEntry.batchDivision,
+          selectedBatchDetails.totalStudents,
+        );
         setScheduleEntry((prev) => ({
           ...prev,
           studentCount: count,
@@ -442,7 +466,10 @@ const Timetable = () => {
       }));
     } else {
       if (parallelEntry.batchDivision && selectedBatchDetails?.totalStudents) {
-        const count = getStudentCountForDivision(parallelEntry.batchDivision, selectedBatchDetails.totalStudents);
+        const count = getStudentCountForDivision(
+          parallelEntry.batchDivision,
+          selectedBatchDetails.totalStudents,
+        );
         setParallelEntry((prev) => ({
           ...prev,
           studentCount: count,
@@ -459,7 +486,8 @@ const Timetable = () => {
     const b3Size = Math.max(0, totalStudents - 50);
 
     if (division === "B1") return Math.min(b1Size, totalStudents);
-    if (division === "B2") return totalStudents > 25 ? Math.min(b2Size, totalStudents - 25) : 0;
+    if (division === "B2")
+      return totalStudents > 25 ? Math.min(b2Size, totalStudents - 25) : 0;
     if (division === "B3") return b3Size;
 
     return 0;
@@ -571,10 +599,13 @@ const Timetable = () => {
       batchDepartment.toLowerCase().includes(searchTerm.toLowerCase());
 
     const filterSemesterNumber =
-      selectedSemester === "All Semesters" ? null : parseInt(selectedSemester.replace("Semester ", ""));
+      selectedSemester === "All Semesters"
+        ? null
+        : parseInt(selectedSemester.replace("Semester ", ""));
 
     const matchesSemester =
-      selectedSemester === "All Semesters" || batchSemester === filterSemesterNumber;
+      selectedSemester === "All Semesters" ||
+      batchSemester === filterSemesterNumber;
 
     return matchesSearch && matchesSemester;
   });
@@ -617,19 +648,32 @@ const Timetable = () => {
   };
 
   const addParallelClass = () => {
-    if (!parallelEntry.subject || !parallelEntry.faculty || !parallelEntry.classroom) {
+    if (
+      !parallelEntry.subject ||
+      !parallelEntry.faculty ||
+      !parallelEntry.classroom
+    ) {
       alert("Please fill all fields for parallel class");
       return;
     }
 
-    if (batchDivisionRequiredTypes.includes(parallelEntry.type) && !parallelEntry.batchDivision) {
+    if (
+      batchDivisionRequiredTypes.includes(parallelEntry.type) &&
+      !parallelEntry.batchDivision
+    ) {
       alert("Batch division is required for Lab classes");
       return;
     }
 
-    const selectedSubject = subjects.find((s) => s._id === parallelEntry.subject);
-    const selectedFaculty = faculties.find((f) => f._id === parallelEntry.faculty);
-    const selectedClassroom = classrooms.find((c) => c._id === parallelEntry.classroom);
+    const selectedSubject = subjects.find(
+      (s) => s._id === parallelEntry.subject,
+    );
+    const selectedFaculty = faculties.find(
+      (f) => f._id === parallelEntry.faculty,
+    );
+    const selectedClassroom = classrooms.find(
+      (c) => c._id === parallelEntry.classroom,
+    );
 
     if (!selectedSubject || !selectedFaculty || !selectedClassroom) {
       alert("Selected options not found");
@@ -656,7 +700,10 @@ const Timetable = () => {
       batchDivision: parallelEntry.batchDivision,
       studentCount:
         parallelEntry.batchDivision && selectedBatchDetails?.totalStudents
-          ? getStudentCountForDivision(parallelEntry.batchDivision, selectedBatchDetails.totalStudents)
+          ? getStudentCountForDivision(
+              parallelEntry.batchDivision,
+              selectedBatchDetails.totalStudents,
+            )
           : parallelEntry.studentCount,
     };
 
@@ -677,9 +724,9 @@ const Timetable = () => {
 
   // Handle time slot checkbox changes for schedule
   const handleTimeSlotChange = (timeSlot) => {
-    setScheduleEntry(prev => {
+    setScheduleEntry((prev) => {
       const newTimeSlots = prev.timeSlots.includes(timeSlot)
-        ? prev.timeSlots.filter(ts => ts !== timeSlot)
+        ? prev.timeSlots.filter((ts) => ts !== timeSlot)
         : [...prev.timeSlots, timeSlot];
       return { ...prev, timeSlots: newTimeSlots };
     });
@@ -687,9 +734,9 @@ const Timetable = () => {
 
   // Handle time slot checkbox changes for break
   const handleBreakTimeSlotChange = (timeSlot) => {
-    setBreakEntry(prev => {
+    setBreakEntry((prev) => {
       const newTimeSlots = prev.timeSlots.includes(timeSlot)
-        ? prev.timeSlots.filter(ts => ts !== timeSlot)
+        ? prev.timeSlots.filter((ts) => ts !== timeSlot)
         : [...prev.timeSlots, timeSlot];
       return { ...prev, timeSlots: newTimeSlots };
     });
@@ -709,12 +756,17 @@ const Timetable = () => {
       }
 
       if (hasTimeOverlap(scheduleEntry.day, timeSlot)) {
-        alert(`Time slot ${timeSlot} overlaps with an existing class or break on ${scheduleEntry.day}`);
+        alert(
+          `Time slot ${timeSlot} overlaps with an existing class or break on ${scheduleEntry.day}`,
+        );
         return;
       }
     }
 
-    if (batchDivisionRequiredTypes.includes(scheduleEntry.type) && !scheduleEntry.batchDivision) {
+    if (
+      batchDivisionRequiredTypes.includes(scheduleEntry.type) &&
+      !scheduleEntry.batchDivision
+    ) {
       alert("Batch division is required for Lab classes");
       return;
     }
@@ -726,30 +778,37 @@ const Timetable = () => {
       timeSlot: timeSlot,
       subject: scheduleEntry.subject
         ? {
-          _id: scheduleEntry.subject,
-          name: subjects.find((s) => s._id === scheduleEntry.subject)?.name,
-          code:
-            subjects.find((s) => s._id === scheduleEntry.subject)?.subjectCode ||
-            subjects.find((s) => s._id === scheduleEntry.subject)?.code,
-        }
+            _id: scheduleEntry.subject,
+            name: subjects.find((s) => s._id === scheduleEntry.subject)?.name,
+            code:
+              subjects.find((s) => s._id === scheduleEntry.subject)
+                ?.subjectCode ||
+              subjects.find((s) => s._id === scheduleEntry.subject)?.code,
+          }
         : null,
       faculty: scheduleEntry.faculty
         ? {
-          _id: scheduleEntry.faculty,
-          name: getFacultyDisplayName(faculties.find((f) => f._id === scheduleEntry.faculty)),
-        }
+            _id: scheduleEntry.faculty,
+            name: getFacultyDisplayName(
+              faculties.find((f) => f._id === scheduleEntry.faculty),
+            ),
+          }
         : null,
       classroom: scheduleEntry.classroom
         ? {
-          _id: scheduleEntry.classroom,
-          name: classrooms.find((c) => c._id === scheduleEntry.classroom)?.name,
-        }
+            _id: scheduleEntry.classroom,
+            name: classrooms.find((c) => c._id === scheduleEntry.classroom)
+              ?.name,
+          }
         : null,
       type: scheduleEntry.type,
       batchDivision: scheduleEntry.batchDivision,
       studentCount:
         scheduleEntry.batchDivision && selectedBatchDetails?.totalStudents
-          ? getStudentCountForDivision(scheduleEntry.batchDivision, selectedBatchDetails.totalStudents)
+          ? getStudentCountForDivision(
+              scheduleEntry.batchDivision,
+              selectedBatchDetails.totalStudents,
+            )
           : scheduleEntry.studentCount,
       parallelClasses: parallelClasses,
     }));
@@ -793,7 +852,9 @@ const Timetable = () => {
       }
 
       if (hasTimeOverlap(breakEntry.day, timeSlot)) {
-        alert(`Time slot ${timeSlot} overlaps with an existing class or break on ${breakEntry.day}`);
+        alert(
+          `Time slot ${timeSlot} overlaps with an existing class or break on ${breakEntry.day}`,
+        );
         return;
       }
     }
@@ -825,7 +886,9 @@ const Timetable = () => {
   const removeScheduleEntry = (id) => {
     setNewTimetable({
       ...newTimetable,
-      schedule: (newTimetable.schedule || []).filter((entry) => entry._id !== id),
+      schedule: (newTimetable.schedule || []).filter(
+        (entry) => entry._id !== id,
+      ),
     });
   };
 
@@ -838,7 +901,9 @@ const Timetable = () => {
 
   const editTimetable = async (timetable) => {
     try {
-      const response = await axios.get(`${API_URL}/timetables/${timetable._id}`);
+      const response = await axios.get(
+        `${API_URL}/timetables/${timetable._id}`,
+      );
       const fullTimetable = response.data?.data || response.data;
 
       const formattedSchedule = (fullTimetable.schedule || []).map((entry) => ({
@@ -847,22 +912,22 @@ const Timetable = () => {
         timeSlot: entry.timeSlot,
         subject: entry.subject
           ? {
-            _id: entry.subject._id,
-            name: entry.subject.name,
-            code: entry.subject.code,
-          }
+              _id: entry.subject._id,
+              name: entry.subject.name,
+              code: entry.subject.code,
+            }
           : null,
         faculty: entry.faculty
           ? {
-            _id: entry.faculty._id,
-            name: entry.faculty.name,
-          }
+              _id: entry.faculty._id,
+              name: entry.faculty.name,
+            }
           : null,
         classroom: entry.classroom
           ? {
-            _id: entry.classroom._id,
-            name: entry.classroom.name,
-          }
+              _id: entry.classroom._id,
+              name: entry.classroom.name,
+            }
           : null,
         type: entry.type,
         batchDivision: entry.batchDivision,
@@ -931,14 +996,20 @@ const Timetable = () => {
         faculty: entry.faculty?._id,
         classroom: entry.classroom?._id,
         type: entry.type,
-        batchDivision: entry.type === "Lab" && entry.batchDivision ? entry.batchDivision : undefined,
+        batchDivision:
+          entry.type === "Lab" && entry.batchDivision
+            ? entry.batchDivision
+            : undefined,
         studentCount: entry.studentCount,
         parallelClasses: (entry.parallelClasses || []).map((pc) => ({
           subject: pc.subject._id,
           faculty: pc.faculty._id,
           classroom: pc.classroom._id,
           type: pc.type,
-          batchDivision: pc.type === "Lab" && pc.batchDivision ? pc.batchDivision : undefined,
+          batchDivision:
+            pc.type === "Lab" && pc.batchDivision
+              ? pc.batchDivision
+              : undefined,
           studentCount: pc.studentCount,
         })),
       }));
@@ -964,7 +1035,10 @@ const Timetable = () => {
 
       let response;
       if (newTimetable._id) {
-        response = await axios.put(`${API_URL}/timetables/${newTimetable._id}`, timetableData);
+        response = await axios.put(
+          `${API_URL}/timetables/${newTimetable._id}`,
+          timetableData,
+        );
         alert("Timetable updated successfully!");
       } else {
         response = await axios.post(`${API_URL}/timetables`, timetableData);
@@ -992,7 +1066,9 @@ const Timetable = () => {
 
   const viewTimetable = async (timetable) => {
     try {
-      const response = await axios.get(`${API_URL}/timetables/${timetable._id}`);
+      const response = await axios.get(
+        `${API_URL}/timetables/${timetable._id}`,
+      );
       const fullTimetable = response.data?.data || response.data;
       setSelectedTimetable(fullTimetable);
       setShowViewModal(true);
@@ -1054,19 +1130,27 @@ const Timetable = () => {
     return item;
   };
 
-  const filteredClassrooms = scheduleEntry.type === "Lab"
-    ? classrooms.filter((c) => c.type === "Lab")
-    : classrooms.filter((c) => c.type !== "Lab");
+  const filteredClassrooms =
+    scheduleEntry.type === "Lab"
+      ? classrooms.filter((c) => c.type === "Lab")
+      : classrooms.filter((c) => c.type !== "Lab");
 
   // Filter classrooms for parallel classes - SAME AS MAIN SCHEDULE
-  const filteredParallelClassrooms = parallelEntry.type === "Lab"
-    ? classrooms.filter((c) => c.type === "Lab")
-    : classrooms.filter((c) => c.type !== "Lab");
+  const filteredParallelClassrooms =
+    parallelEntry.type === "Lab"
+      ? classrooms.filter((c) => c.type === "Lab")
+      : classrooms.filter((c) => c.type !== "Lab");
 
   const selectedBatch = batches.find((b) => b._id === newTimetable.batch);
-  const batchOptions = selectedBatch ? getBatchOptions(selectedBatch.totalStudents || 0) : [];
-  const requiresBatchDivision = batchDivisionRequiredTypes.includes(scheduleEntry.type);
-  const parallelRequiresBatchDivision = batchDivisionRequiredTypes.includes(parallelEntry.type);
+  const batchOptions = selectedBatch
+    ? getBatchOptions(selectedBatch.totalStudents || 0)
+    : [];
+  const requiresBatchDivision = batchDivisionRequiredTypes.includes(
+    scheduleEntry.type,
+  );
+  const parallelRequiresBatchDivision = batchDivisionRequiredTypes.includes(
+    parallelEntry.type,
+  );
 
   if (loading) {
     return (
@@ -1084,8 +1168,12 @@ const Timetable = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="pt-24 text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-600 mb-2">Timetable Management</h1>
-          <p className="text-lg text-gray-600">Create and manage class schedules for different batches</p>
+          <h1 className="text-4xl font-bold text-gray-600 mb-2">
+            Timetable Management
+          </h1>
+          <p className="text-lg text-gray-600">
+            Create and manage class schedules for different batches
+          </p>
         </div>
 
         {/* Error Display */}
@@ -1099,7 +1187,9 @@ const Timetable = () => {
         <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Search batches...</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Search batches...
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i className="fas fa-search text-gray-400"></i>
@@ -1115,7 +1205,9 @@ const Timetable = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Semester</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Semester
+              </label>
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
@@ -1153,17 +1245,25 @@ const Timetable = () => {
         {/* Timetables Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTimetables.map((timetable) => {
-            const batchInfo = typeof timetable.batch === "object" ? timetable.batch : batches.find((b) => b._id === timetable.batch);
+            const batchInfo =
+              typeof timetable.batch === "object"
+                ? timetable.batch
+                : batches.find((b) => b._id === timetable.batch);
             const batchName = getBatchName(batchInfo);
             const batchDepartment = batchInfo?.department || "N/A";
-            const batchSemester = batchInfo?.currentSemester || timetable.semester || 1;
-            const batchAcademicYear = batchInfo?.academicYear || timetable.academicYear || "N/A";
-            const totalStudents = batchInfo?.totalStudents || timetable.totalStudents || 0;
+            const batchSemester =
+              batchInfo?.currentSemester || timetable.semester || 1;
+            const batchAcademicYear =
+              batchInfo?.academicYear || timetable.academicYear || "N/A";
+            const totalStudents =
+              batchInfo?.totalStudents || timetable.totalStudents || 0;
 
             let subjectCount = 0;
 
             if (batchInfo?.semesters?.length > 0) {
-              const semData = batchInfo.semesters.find((s) => s.semesterNumber === batchSemester);
+              const semData = batchInfo.semesters.find(
+                (s) => s.semesterNumber === batchSemester,
+              );
               if (semData?.subjects?.length > 0) {
                 subjectCount = semData.subjects.filter((s) => s.subject).length;
               }
@@ -1174,14 +1274,22 @@ const Timetable = () => {
             }
 
             return (
-              <div key={timetable._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div
+                key={timetable._id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              >
                 <div
-                  className={`bg-gradient-to-r ${timetable.status === "Published" ? "from-green-500 to-green-600" : "from-blue-500 to-blue-600"
-                    } p-4`}
+                  className={`bg-gradient-to-r ${
+                    timetable.status === "Published"
+                      ? "from-green-500 to-green-600"
+                      : "from-blue-500 to-blue-600"
+                  } p-4`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-bold text-white">{timetable.name}</h3>
+                      <h3 className="text-xl font-bold text-white">
+                        {timetable.name}
+                      </h3>
                       <p className="text-white text-sm mt-1 opacity-90">
                         {batchName} • Semester {batchSemester}
                       </p>
@@ -1193,9 +1301,13 @@ const Timetable = () => {
                   <div className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">
                       <i className="fas fa-calendar text-gray-400"></i>
-                      <span className="text-sm text-gray-600">Academic Year</span>
+                      <span className="text-sm text-gray-600">
+                        Academic Year
+                      </span>
                     </div>
-                    <span className="font-bold text-blue-600">{batchAcademicYear}</span>
+                    <span className="font-bold text-blue-600">
+                      {batchAcademicYear}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between border-b pb-2">
@@ -1203,7 +1315,9 @@ const Timetable = () => {
                       <i className="fas fa-users text-gray-400"></i>
                       <span className="text-sm text-gray-600">Student</span>
                     </div>
-                    <span className="font-bold text-green-600">{totalStudents}</span>
+                    <span className="font-bold text-green-600">
+                      {totalStudents}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -1211,7 +1325,9 @@ const Timetable = () => {
                       <i className="fas fa-building text-gray-400"></i>
                       <span className="text-sm text-gray-600">Department</span>
                     </div>
-                    <span className="font-bold text-gray-800">{batchDepartment}</span>
+                    <span className="font-bold text-gray-600">
+                      {batchDepartment}
+                    </span>
                   </div>
                 </div>
 
@@ -1247,16 +1363,24 @@ const Timetable = () => {
         {filteredTimetables.length === 0 && timetables.length > 0 && (
           <div className="text-center py-12">
             <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-600">No timetables match your search</h3>
-            <p className="text-gray-500">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-gray-600">
+              No timetables match your search
+            </h3>
+            <p className="text-gray-500">
+              Try adjusting your search or filters
+            </p>
           </div>
         )}
 
         {timetables.length === 0 && !error && (
           <div className="text-center py-12">
             <i className="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-600">No timetables yet</h3>
-            <p className="text-gray-500">Create your first timetable using the button above</p>
+            <h3 className="text-xl font-semibold text-gray-600">
+              No timetables yet
+            </h3>
+            <p className="text-gray-500">
+              Create your first timetable using the button above
+            </p>
           </div>
         )}
       </div>
@@ -1275,7 +1399,9 @@ const Timetable = () => {
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Timetable Name *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Timetable Name *
+                  </label>
                   <input
                     type="text"
                     name="name"
@@ -1287,7 +1413,9 @@ const Timetable = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Select Batch *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Select Batch *
+                  </label>
                   <select
                     name="batch"
                     value={newTimetable.batch}
@@ -1297,7 +1425,9 @@ const Timetable = () => {
                     <option value="">Select Batch</option>
                     {batches.map((batch) => (
                       <option key={batch._id} value={batch._id}>
-                        {batch.batchName || batch.name} - Semester {batch.currentSemester || 1} ({batch.totalStudents || 0} students)
+                        {batch.batchName || batch.name} - Semester{" "}
+                        {batch.currentSemester || 1} ({batch.totalStudents || 0}{" "}
+                        students)
                       </option>
                     ))}
                   </select>
@@ -1307,21 +1437,35 @@ const Timetable = () => {
               {/* Batch Info Section */}
               {selectedBatchDetails && (
                 <div className="mb-6 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-600 mb-2">Batch Information</h4>
+                  <h4 className="font-medium text-blue-600 mb-2">
+                    Batch Information
+                  </h4>
                   <p className="text-sm text-blue-600">
-                    <span className="font-semibold">Academic Year:</span> {selectedBatchDetails.academicYear || getCurrentAcademicYear()}
+                    <span className="font-semibold">Academic Year:</span>{" "}
+                    {selectedBatchDetails.academicYear ||
+                      getCurrentAcademicYear()}
                   </p>
                   <p className="text-sm text-blue-600 mt-1">
-                    <span className="font-semibold">Semester:</span> {selectedBatchDetails.currentSemester || 1} |
-                    <span className="font-semibold ml-1">Department:</span> {selectedBatchDetails.department}
+                    <span className="font-semibold">Semester:</span>{" "}
+                    {selectedBatchDetails.currentSemester || 1} |
+                    <span className="font-semibold ml-1">Department:</span>{" "}
+                    {selectedBatchDetails.department}
                   </p>
                   <p className="text-sm text-blue-600 mt-1">
-                    <span className="font-semibold">Subjects:</span> {batchSubjects.length}
+                    <span className="font-semibold">Subjects:</span>{" "}
+                    {batchSubjects.length}
                   </p>
                   <div className="mt-2 pt-2 border-t border-blue-200">
-                    <p className="text-sm font-semibold text-blue-700">Batch Distribution:</p>
+                    <p className="text-sm font-semibold text-blue-700">
+                      Batch Distribution:
+                    </p>
                     <p className="text-sm text-blue-600">
-                      B1: 25 students | B2: 25 students | B3: {Math.max(0, (selectedBatchDetails.totalStudents || 0) - 50)} students
+                      B1: 25 students | B2: 25 students | B3:{" "}
+                      {Math.max(
+                        0,
+                        (selectedBatchDetails.totalStudents || 0) - 50,
+                      )}{" "}
+                      students
                     </p>
                   </div>
                 </div>
@@ -1329,12 +1473,21 @@ const Timetable = () => {
 
               {/* Add Class Form */}
               <div className="border rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold mb-4">Add Class Schedule</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Add Class Schedule
+                </h3>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Day</label>
-                    <select name="day" value={scheduleEntry.day} onChange={handleScheduleChange} className="w-full px-3 py-2 border rounded-md">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Day
+                    </label>
+                    <select
+                      name="day"
+                      value={scheduleEntry.day}
+                      onChange={handleScheduleChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
                       {daysOfWeek.map((day) => (
                         <option key={day} value={day}>
                           {day}
@@ -1344,10 +1497,14 @@ const Timetable = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Time Slots *</label>
-                    <button
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Time Slots *
+                    </label>
+                    <button 
                       type="button"
-                      onClick={() => setShowTimeSlotDropdown(!showTimeSlotDropdown)}
+                      onClick={() =>
+                        setShowTimeSlotDropdown(!showTimeSlotDropdown)
+                      }
                       className="w-full px-3 py-2 border rounded-md text-left bg-white flex justify-between items-center"
                     >
                       <span>
@@ -1360,10 +1517,15 @@ const Timetable = () => {
                     {showTimeSlotDropdown && (
                       <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
                         {timeSlotsList.map((timeSlot) => (
-                          <label key={timeSlot} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                          <label
+                            key={timeSlot}
+                            className="flex items-center px-3 py-2 hover:bg-gray-40 cursor-pointer"
+                          >
                             <input
                               type="checkbox"
-                              checked={scheduleEntry.timeSlots.includes(timeSlot)}
+                              checked={scheduleEntry.timeSlots.includes(
+                                timeSlot,
+                              )}
                               onChange={() => handleTimeSlotChange(timeSlot)}
                               className="mr-2"
                             />
@@ -1375,22 +1537,34 @@ const Timetable = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Subject</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Subject
+                    </label>
                     <select
                       name="subject"
                       value={scheduleEntry.subject}
                       onChange={handleScheduleChange}
                       className="w-full px-3 py-2 border rounded-md"
-                      disabled={!newTimetable.batch || batchSubjects.length === 0}
+                      disabled={
+                        !newTimetable.batch || batchSubjects.length === 0
+                      }
                     >
                       <option value="">
-                        {!newTimetable.batch ? "Select batch first" : batchSubjects.length === 0 ? "No subjects in current semester" : "Select Subject"}
+                        {!newTimetable.batch
+                          ? "Select batch first"
+                          : batchSubjects.length === 0
+                            ? "No subjects in current semester"
+                            : "Select Subject"}
                       </option>
                       {batchSubjects.map((item) => {
                         const subject = item?.subject || item;
                         if (!subject) return null;
 
-                        const subjectCode = subject.subjectCode || subject.code || subject.name || "Unknown";
+                        const subjectCode =
+                          subject.subjectCode ||
+                          subject.code ||
+                          subject.name ||
+                          "Unknown";
                         const subjectName = subject.name || "";
 
                         return (
@@ -1403,7 +1577,9 @@ const Timetable = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Faculty</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Faculty
+                    </label>
                     <select
                       name="faculty"
                       value={scheduleEntry.faculty}
@@ -1411,18 +1587,30 @@ const Timetable = () => {
                       className="w-full px-3 py-2 border rounded-md"
                       disabled={!scheduleEntry.subject}
                     >
-                      <option value="">{!scheduleEntry.subject ? "Select subject first" : "Select Faculty"}</option>
+                      <option value="">
+                        {!scheduleEntry.subject
+                          ? "Select subject first"
+                          : "Select Faculty"}
+                      </option>
                       {filteredFaculty.map((faculty) => (
                         <option key={faculty._id} value={faculty._id}>
-                          {getFacultyDisplayName(faculty)} - {faculty.department}
+                          {getFacultyDisplayName(faculty)} -{" "}
+                          {faculty.department}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
-                    <select name="type" value={scheduleEntry.type} onChange={handleScheduleChange} className="w-full px-3 py-2 border rounded-md">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Type
+                    </label>
+                    <select
+                      name="type"
+                      value={scheduleEntry.type}
+                      onChange={handleScheduleChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
                       <option value="Theory">Select Theory</option>
                       <option value="Core">Core</option>
                       <option value="Lab">Lab</option>
@@ -1435,9 +1623,10 @@ const Timetable = () => {
                     </select>
                   </div>
 
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Classroom</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Classroom
+                    </label>
                     <select
                       name="classroom"
                       value={scheduleEntry.classroom}
@@ -1453,10 +1642,11 @@ const Timetable = () => {
                     </select>
                   </div>
 
-
                   {requiresBatchDivision && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Batch Division <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Batch Division <span className="text-red-500">*</span>
+                      </label>
                       <select
                         name="batchDivision"
                         value={scheduleEntry.batchDivision}
@@ -1467,9 +1657,14 @@ const Timetable = () => {
                         {selectedBatchDetails?.totalStudents > 0 && (
                           <>
                             <option value="B1">B1 (25 students)</option>
-                            {selectedBatchDetails.totalStudents > 25 && <option value="B2">B2 (25 students)</option>}
+                            {selectedBatchDetails.totalStudents > 25 && (
+                              <option value="B2">B2 (25 students)</option>
+                            )}
                             {selectedBatchDetails.totalStudents > 50 && (
-                              <option value="B3">B3 ({selectedBatchDetails.totalStudents - 50} students)</option>
+                              <option value="B3">
+                                B3 ({selectedBatchDetails.totalStudents - 50}{" "}
+                                students)
+                              </option>
                             )}
                           </>
                         )}
@@ -1485,7 +1680,9 @@ const Timetable = () => {
                     onClick={() => setShowParallelForm(!showParallelForm)}
                     className="text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    {showParallelForm ? "− Hide Parallel Classes" : "+ Add Parallel Classes"}
+                    {showParallelForm
+                      ? "− Hide Parallel Classes"
+                      : "+ Add Parallel Classes"}
                   </button>
 
                   {showParallelForm && (
@@ -1499,21 +1696,32 @@ const Timetable = () => {
                             value={parallelEntry.subject}
                             onChange={handleParallelChange}
                             className="w-full px-3 py-2 border rounded-md"
-                            disabled={!newTimetable.batch || batchSubjects.length === 0}
+                            disabled={
+                              !newTimetable.batch || batchSubjects.length === 0
+                            }
                           >
                             <option value="">
-                              {!newTimetable.batch ? "Select batch first" : batchSubjects.length === 0 ? "No subjects in current semester" : "Select Subject"}
+                              {!newTimetable.batch
+                                ? "Select batch first"
+                                : batchSubjects.length === 0
+                                  ? "No subjects in current semester"
+                                  : "Select Subject"}
                             </option>
                             {batchSubjects.map((item) => {
                               const subject = item?.subject || item;
                               if (!subject) return null;
 
-                              const subjectCode = subject.subjectCode || subject.code || subject.name || "Unknown";
+                              const subjectCode =
+                                subject.subjectCode ||
+                                subject.code ||
+                                subject.name ||
+                                "Unknown";
                               const subjectName = subject.name || "";
 
                               return (
                                 <option key={subject._id} value={subject._id}>
-                                  {subjectCode} {subjectName && `- ${subjectName}`}
+                                  {subjectCode}{" "}
+                                  {subjectName && `- ${subjectName}`}
                                 </option>
                               );
                             })}
@@ -1528,17 +1736,27 @@ const Timetable = () => {
                             className="w-full px-3 py-2 border rounded-md"
                             disabled={!parallelEntry.subject}
                           >
-                            <option value="">{!parallelEntry.subject ? "Select subject first" : "Select Faculty"}</option>
+                            <option value="">
+                              {!parallelEntry.subject
+                                ? "Select subject first"
+                                : "Select Faculty"}
+                            </option>
                             {filteredParallelFaculty.map((faculty) => (
                               <option key={faculty._id} value={faculty._id}>
-                                {getFacultyDisplayName(faculty)} - {faculty.department}
+                                {getFacultyDisplayName(faculty)} -{" "}
+                                {faculty.department}
                               </option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <select name="type" value={parallelEntry.type} onChange={handleParallelChange} className="w-full px-3 py-2 border rounded-md">
+                          <select
+                            name="type"
+                            value={parallelEntry.type}
+                            onChange={handleParallelChange}
+                            className="w-full px-3 py-2 border rounded-md"
+                          >
                             <option value="Theory">Select Theory</option>
                             <option value="Core">Core</option>
                             <option value="Lab">Lab</option>
@@ -1550,7 +1768,6 @@ const Timetable = () => {
                             <option value="Seminar">Seminar</option>
                           </select>
                         </div>
-
 
                         <div>
                           <select
@@ -1580,9 +1797,15 @@ const Timetable = () => {
                               {selectedBatchDetails?.totalStudents > 0 && (
                                 <>
                                   <option value="B1">B1 (25 students)</option>
-                                  {selectedBatchDetails.totalStudents > 25 && <option value="B2">B2 (25 students)</option>}
+                                  {selectedBatchDetails.totalStudents > 25 && (
+                                    <option value="B2">B2 (25 students)</option>
+                                  )}
                                   {selectedBatchDetails.totalStudents > 50 && (
-                                    <option value="B3">B3 ({selectedBatchDetails.totalStudents - 50} students)</option>
+                                    <option value="B3">
+                                      B3 (
+                                      {selectedBatchDetails.totalStudents - 50}{" "}
+                                      students)
+                                    </option>
                                   )}
                                 </>
                               )}
@@ -1591,7 +1814,10 @@ const Timetable = () => {
                         )}
 
                         <div>
-                          <button onClick={addParallelClass} className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                          <button
+                            onClick={addParallelClass}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                          >
                             Add
                           </button>
                         </div>
@@ -1599,14 +1825,24 @@ const Timetable = () => {
 
                       {parallelClasses.length > 0 && (
                         <div className="mt-4">
-                          <h5 className="font-medium mb-2">Added Parallel Classes:</h5>
+                          <h5 className="font-medium mb-2">
+                            Added Parallel Classes:
+                          </h5>
                           <div className="space-y-2">
                             {parallelClasses.map((pc) => (
-                              <div key={pc.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                              <div
+                                key={pc.id}
+                                className="flex items-center justify-between p-2 bg-white rounded border"
+                              >
                                 <span className="text-sm">
-                                  {pc.subject.code} {pc.batchDivision && `(${pc.batchDivision})`} - {pc.faculty.name} - {pc.classroom.name}
+                                  {pc.subject.code}{" "}
+                                  {pc.batchDivision && `(${pc.batchDivision})`}{" "}
+                                  - {pc.faculty.name} - {pc.classroom.name}
                                 </span>
-                                <button onClick={() => removeParallelClass(pc.id)} className="text-red-500 hover:text-red-700">
+                                <button
+                                  onClick={() => removeParallelClass(pc.id)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
                                   <i className="fas fa-times"></i>
                                 </button>
                               </div>
@@ -1620,10 +1856,16 @@ const Timetable = () => {
 
                 <button
                   onClick={addScheduleEntry}
-                  disabled={scheduleEntry.timeSlots.length === 0 || (requiresBatchDivision && !scheduleEntry.batchDivision)}
+                  disabled={
+                    scheduleEntry.timeSlots.length === 0 ||
+                    (requiresBatchDivision && !scheduleEntry.batchDivision)
+                  }
                   className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 w-full"
                 >
-                  Add to Schedule ({scheduleEntry.timeSlots.length} time slot(s)) {parallelClasses.length > 0 && `(+${parallelClasses.length} parallel classes)`}
+                  Add to Schedule ({scheduleEntry.timeSlots.length} time
+                  slot(s)){" "}
+                  {parallelClasses.length > 0 &&
+                    `(+${parallelClasses.length} parallel classes)`}
                 </button>
               </div>
 
@@ -1633,8 +1875,15 @@ const Timetable = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Day</label>
-                    <select name="day" value={breakEntry.day} onChange={handleBreakChange} className="w-full px-3 py-2 border rounded-md">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Day
+                    </label>
+                    <select
+                      name="day"
+                      value={breakEntry.day}
+                      onChange={handleBreakChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
                       {daysOfWeek.map((day) => (
                         <option key={day} value={day}>
                           {day}
@@ -1644,10 +1893,14 @@ const Timetable = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Time Slots *</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Time Slots *
+                    </label>
                     <button
                       type="button"
-                      onClick={() => setShowBreakTimeSlotDropdown(!showBreakTimeSlotDropdown)}
+                      onClick={() =>
+                        setShowBreakTimeSlotDropdown(!showBreakTimeSlotDropdown)
+                      }
                       className="w-full px-3 py-2 border rounded-md text-left bg-white flex justify-between items-center"
                     >
                       <span>
@@ -1660,11 +1913,16 @@ const Timetable = () => {
                     {showBreakTimeSlotDropdown && (
                       <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
                         {timeSlotsList.map((timeSlot) => (
-                          <label key={timeSlot} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                          <label
+                            key={timeSlot}
+                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                          >
                             <input
                               type="checkbox"
                               checked={breakEntry.timeSlots.includes(timeSlot)}
-                              onChange={() => handleBreakTimeSlotChange(timeSlot)}
+                              onChange={() =>
+                                handleBreakTimeSlotChange(timeSlot)
+                              }
                               className="mr-2"
                             />
                             <span>{timeSlot}</span>
@@ -1675,7 +1933,9 @@ const Timetable = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Break Name</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Break Name
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -1690,7 +1950,9 @@ const Timetable = () => {
                           {(() => {
                             const breakIcon = getBreakIcon(breakEntry.name);
                             const IconComponent = breakIcon.icon;
-                            return <IconComponent className={breakIcon.color} />;
+                            return (
+                              <IconComponent className={breakIcon.color} />
+                            );
                           })()}
                         </div>
                       )}
@@ -1699,7 +1961,10 @@ const Timetable = () => {
                 </div>
 
                 <div className="mt-4">
-                  <button onClick={addBreakEntry} className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700">
+                  <button
+                    onClick={addBreakEntry}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+                  >
                     Add Break
                   </button>
                 </div>
@@ -1708,13 +1973,18 @@ const Timetable = () => {
               {/* Schedule Preview */}
               <div className="border rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">
-                  Current Schedule ({newTimetable.schedule?.length || 0} classes, {newTimetable.breaks?.length || 0} breaks)
+                  Current Schedule ({newTimetable.schedule?.length || 0}{" "}
+                  classes, {newTimetable.breaks?.length || 0} breaks)
                 </h3>
 
-                {newTimetable.schedule?.length > 0 || newTimetable.breaks?.length > 0 ? (
+                {newTimetable.schedule?.length > 0 ||
+                newTimetable.breaks?.length > 0 ? (
                   <div className="space-y-3">
                     {newTimetable.schedule?.map((entry) => (
-                      <div key={entry._id} className="flex items-center justify-between p-3 rounded">
+                      <div
+                        key={entry._id}
+                        className="flex items-center justify-between p-3 rounded"
+                      >
                         <div className="flex-1">
                           <span className="font-medium">
                             {entry.day} {entry.timeSlot}
@@ -1723,8 +1993,16 @@ const Timetable = () => {
                             <div className="flex justify-between items-center border border-gray-300 rounded px-3 py-1 mt-1 bg-white max-w-xs">
                               <span className="text-sm font-medium">
                                 {entry.subject.code}
-                                {entry.type && <span className="ml-1 text-xs text-gray-600">({entry.type})</span>}
-                                {entry.batchDivision && <span className="ml-1 text-xs">-{entry.batchDivision}</span>}
+                                {entry.type && (
+                                  <span className="ml-1 text-xs text-gray-600">
+                                    ({entry.type})
+                                  </span>
+                                )}
+                                {entry.batchDivision && (
+                                  <span className="ml-1 text-xs">
+                                    -{entry.batchDivision}
+                                  </span>
+                                )}
                               </span>
                               {entry.classroom && (
                                 <span className="text-xs font-medium text-gray-6 border-l border-gray-300 pl-2 ml-2">
@@ -1734,10 +2012,15 @@ const Timetable = () => {
                             </div>
                           )}
                           {entry.parallelClasses?.length > 0 && (
-                            <span className="ml-2 text-xs text-purple-600">+{entry.parallelClasses.length} parallel</span>
+                            <span className="ml-2 text-xs text-purple-600">
+                              +{entry.parallelClasses.length} parallel
+                            </span>
                           )}
                         </div>
-                        <button onClick={() => removeScheduleEntry(entry._id)} className="text-red-500 hover:text-red-700">
+                        <button
+                          onClick={() => removeScheduleEntry(entry._id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
                           <i className="fas fa-trash"></i>
                         </button>
                       </div>
@@ -1748,19 +2031,29 @@ const Timetable = () => {
                       const IconComponent = breakIcon.icon;
 
                       return (
-                        <div key={breakItem._id} className="flex items-center justify-between p-3 rounded">
+                        <div
+                          key={breakItem._id}
+                          className="flex items-center justify-between p-3 rounded"
+                        >
                           <div className="flex items-center flex-1">
-                            <div className={`p-2 rounded-full ${breakIcon.bg} mr-3`}>
+                            <div
+                              className={`p-2 rounded-full ${breakIcon.bg} mr-3`}
+                            >
                               <IconComponent className={breakIcon.color} />
                             </div>
                             <div>
                               <span className="font-medium">
                                 {breakItem.day} {breakItem.timeSlot}
                               </span>
-                              <span className="ml-3 text-sm">{breakItem.name}</span>
+                              <span className="ml-3 text-sm">
+                                {breakItem.name}
+                              </span>
                             </div>
                           </div>
-                          <button onClick={() => removeBreakEntry(breakItem._id)} className="text-red-500 hover:text-red-700">
+                          <button
+                            onClick={() => removeBreakEntry(breakItem._id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>
@@ -1768,7 +2061,9 @@ const Timetable = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="text-gray-600 text-center py-4">No classes or breaks scheduled yet</p>
+                  <p className="text-gray-600 text-center py-4">
+                    No classes or breaks scheduled yet
+                  </p>
                 )}
               </div>
             </div>
@@ -1808,13 +2103,17 @@ const Timetable = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-blue-600 p-6">
-              <h2 className="text-2xl font-bold text-white">{selectedTimetable.name}</h2>
-              <p className="text-white text-sm mt-1">Semester {selectedTimetable.semester}</p>
+              <h2 className="text-2xl font-bold text-white">
+                {selectedTimetable.name}
+              </h2>
+              <p className="text-white text-sm mt-1">
+                Semester {selectedTimetable.semester}
+              </p>
             </div>
 
             <div className="p-6">
               <div className="overflow-x-auto">
-                <table className="min-w-full border">
+                <table className="min-w-full border table-fixed">
                   <thead>
                     <tr className="bg-gray-50">
                       <th className="px-4 py-2 border">Time</th>
@@ -1827,31 +2126,36 @@ const Timetable = () => {
                   </thead>
                   <tbody>
                     {(() => {
-
-
                       const sortedTimeSlots = timeSlotsList;
                       return timeSlotsList.map((timeSlot) => (
                         <tr key={timeSlot}>
-                          <td className="px-4 py-2 border font-medium bg-gray-50">{timeSlot}</td>
+                          <td className="px-4 py-2 border font-medium bg-gray-50">
+                            {timeSlot}
+                          </td>
                           {daysOfWeek.map((day) => {
-                            const allEntries = getSortedEntriesForDay(selectedTimetable, day);
+                            const allEntries = getSortedEntriesForDay(
+                              selectedTimetable,
+                              day,
+                            );
 
-                            const entries = allEntries.filter((e) => e.timeSlot === timeSlot);
+                            const entries = allEntries.filter(
+                              (e) => e.timeSlot === timeSlot,
+                            );
                             // find current entry
                             const currentEntry = entries[0];
 
                             // check if previous slot has same subject (for skip)
-                            const prevSlot = timeSlotsList[timeSlotsList.indexOf(timeSlot) - 1];
+                            const prevSlot =
+                              timeSlotsList[
+                                timeSlotsList.indexOf(timeSlot) - 1
+                              ];
 
                             const prevEntry = allEntries.find(
                               (e) =>
                                 e.timeSlot === prevSlot &&
                                 e.subject?._id === currentEntry?.subject?._id &&
-                                e.day === day
+                                e.day === day,
                             );
-
-                            // 👉 SKIP second slot
-                            if (prevEntry) return null;
 
                             // check next slot for rowspan
                             const nextSlot = getNextTimeSlot(timeSlot);
@@ -1860,27 +2164,33 @@ const Timetable = () => {
                               (e) =>
                                 e.timeSlot === nextSlot &&
                                 e.subject?._id === currentEntry?.subject?._id &&
-                                e.day === day
+                                e.day === day,
                             );
-
-                            // 👉 apply rowspan
-                            const rowSpan = nextEntry ? 2 : 1;
 
                             return (
                               <td
                                 key={`${day}-${timeSlot}`}
-                                rowSpan={rowSpan}
-                                className="px-4 py-2 border align-middle text-center"
+                                className="border align-middle text-center h-[90px] min-w-[120px] p-0"
                               >
                                 {entries.length > 0 ? (
                                   entries.map((entry, idx) => {
-                                    if (entry.type === "break" || entry.entryType === "break") {
-                                      const breakIcon = getBreakIcon(entry.name);
+                                    if (
+                                      entry.type === "break" ||
+                                      entry.entryType === "break"
+                                    ) {
+                                      const breakIcon = getBreakIcon(
+                                        entry.name,
+                                      );
                                       const IconComponent = breakIcon.icon;
 
                                       return (
-                                        <div key={idx} className={`p-2 ${breakIcon.bg} rounded mb-1`}>
-                                          <div className={`font-medium text-sm ${breakIcon.color}`}>
+                                        <div
+                                          key={idx}
+                                          className={`mx-1 my-1 p-2 rounded flex items-center justify-center ${breakIcon.bg}`}
+                                        >
+                                          <div
+                                            className={`font-medium text-sm ${breakIcon.color}`}
+                                          >
                                             <IconComponent className="inline mr-1" />
                                             {entry.name || "Break"}
                                           </div>
@@ -1888,18 +2198,27 @@ const Timetable = () => {
                                       );
                                     } else {
                                       return (
-                                        <div key={idx} className="mb-2">
+                                        <div
+                                          key={idx}
+                                          className="h-full flex flex-col justify-center"
+                                        >
                                           {/* Main Class */}
                                           {entry.subject && (
-                                            <div className="p-2 bg-blue-100 rounded mb-1">
+                                            <div className="p-2 bg-blue-100 rounded mb-1 mt-1 mx-1 ">
                                               <div className="flex justify-between items-center border border-blue-300 rounded px-2 py-1 bg-white">
                                                 <span className="font-medium text-sm text-blue-800">
-                                                  {getDisplayText(entry.subject)}
+                                                  {getDisplayText(
+                                                    entry.subject,
+                                                  )}
                                                   {entry.type && (
-                                                    <span className="ml-1 text-xs text-gray-500">({entry.type})</span>
+                                                    <span className="ml-1 text-xs text-gray-500">
+                                                      ({entry.type})
+                                                    </span>
                                                   )}
                                                   {entry.batchDivision && (
-                                                    <span className="ml-1 text-xs">-{entry.batchDivision}</span>
+                                                    <span className="ml-1 text-xs">
+                                                      -{entry.batchDivision}
+                                                    </span>
                                                   )}
                                                 </span>
                                                 {entry.classroom && (
@@ -1908,38 +2227,64 @@ const Timetable = () => {
                                                   </span>
                                                 )}
                                               </div>
-                                              <div className="text-xs text-gray-600 mt-1">{getDisplayText(entry.faculty)}</div>
+                                              <div className="text-xs text-gray-600 mt-1 mx-1">
+                                                {getDisplayText(entry.faculty)}
+                                              </div>
                                             </div>
                                           )}
 
                                           {/* Parallel Classes */}
-                                          {entry.parallelClasses && entry.parallelClasses.length > 0 && (
-                                            <div className="mt-1">
-                                              {entry.parallelClasses.map((pc, pIdx) => (
-                                                <div key={pIdx} className="p-2 bg-purple-100 rounded mt-1">
-                                                  <div className="flex justify-between items-center border border-purple-300 rounded px-2 py-1 bg-white">
-                                                    <span className="font-medium text-sm text-purple-800">
-                                                      {getDisplayText(pc.subject)}
-                                                      {pc.type && <span className="ml-1 text-xs text-gray-500">({pc.type})</span>}
-                                                      {pc.batchDivision && <span className="ml-1 text-xs">-{pc.batchDivision}</span>}
-                                                    </span>
-                                                    {pc.classroom && (
-                                                      <span className="text-xs font-medium text-gray-600 border-l border-purple-300 pl-2 ml-2">
-                                                        {pc.classroom.name}
-                                                      </span>
-                                                    )}
-                                                  </div>
-                                                  <div className="text-xs text-gray-600 mt-1">{getDisplayText(pc.faculty)}</div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
+                                          {entry.parallelClasses &&
+                                            entry.parallelClasses.length >
+                                              0 && (
+                                              <div className="mt-1 mx-1">
+                                                {entry.parallelClasses.map(
+                                                  (pc, pIdx) => (
+                                                    <div
+                                                      key={pIdx}
+                                                      className="p-2 bg-purple-100 rounded mb-2 mt-1 mx-1"
+                                                    >
+                                                      <div className="flex justify-between items-center border border-purple-300 rounded px-2 py-1 bg-white">
+                                                        <span className="font-medium text-sm text-purple-800">
+                                                          {getDisplayText(
+                                                            pc.subject,
+                                                          )}
+                                                          {pc.type && (
+                                                            <span className="ml-1 text-xs text-gray-500">
+                                                              ({pc.type})
+                                                            </span>
+                                                          )}
+                                                          {pc.batchDivision && (
+                                                            <span className="ml-1 text-xs">
+                                                              -
+                                                              {pc.batchDivision}
+                                                            </span>
+                                                          )}
+                                                        </span>
+                                                        {pc.classroom && (
+                                                          <span className="text-xs font-medium text-gray-600 border-l border-purple-300 pl-2 ml-2">
+                                                            {pc.classroom.name}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                      <div className="text-xs text-gray-600 mt-1">
+                                                        {getDisplayText(
+                                                          pc.faculty,
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  ),
+                                                )}
+                                              </div>
+                                            )}
                                         </div>
                                       );
                                     }
                                   })
                                 ) : (
-                                  <div className="text-gray-300 text-xs text-center">-</div>
+                                  <div className="h-full flex items-center justify-center text-gray-300 text-xs">
+                                    -
+                                  </div>
                                 )}
                               </td>
                             );
@@ -1953,7 +2298,10 @@ const Timetable = () => {
             </div>
 
             <div className="bg-gray-50 px-6 py-4 flex justify-end">
-              <button onClick={() => setShowViewModal(false)} className="px-4 py-2 border rounded-md hover:bg-gray-100">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 border rounded-md hover:bg-gray-10"
+              >
                 Close
               </button>
             </div>

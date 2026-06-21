@@ -838,7 +838,7 @@ const StudentBatches = () => {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Department
               </label>
-
+              
               {user?.role === "admin" && (
                 <select
                   value={selectedDepartment}

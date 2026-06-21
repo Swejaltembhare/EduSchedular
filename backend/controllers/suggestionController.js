@@ -114,12 +114,10 @@ export const getSuggestionById = async (req, res) => {
   }
 };
 
-// @desc    Submit a new suggestion
-// @route   POST /api/suggestions
 // @access  Public/Private (anyone can submit)
 export const createSuggestion = async (req, res) => {
   try {
-    const { name, email, category, priority, suggestion, isAnonymous } =
+    const { name, email, category, priority, suggestion, isAnonymous, occupation } =
       req.body;
 
     // Validate required fields
@@ -139,12 +137,13 @@ export const createSuggestion = async (req, res) => {
       suggestion: suggestion,
       isAnonymous: isAnonymous || false,
       userId: req.user?._id || null,
+      occupation: occupation || "Student",
     });
 
     // EMAIL NOTIFICATION - Send email to ONLY ONE email
     try {
       const adminEmail =
-        process.env.ADMIN_EMAIL || "supporteduschedular@gmail.com";
+        process.env.EMAIL_USER || "supporteduschedular@gmail.com";
 
       const emailHtml = getSuggestionEmailTemplate({
         userName: isAnonymous ? "Anonymous User" : name,
@@ -157,7 +156,7 @@ export const createSuggestion = async (req, res) => {
 
       await sendEmail(adminEmail, "New Suggestion Received", emailHtml);
 
-      console.log(`Email sent to: ${adminEmail}`);
+      // console.log(`Email sent to: ${adminEmail}`);
     } catch (emailError) {
       console.log("Email notification failed:", emailError.message);
     }
@@ -183,8 +182,6 @@ export const createSuggestion = async (req, res) => {
   }
 };
 
-// @desc    Upvote a suggestion
-// @route   POST /api/suggestions/:id/upvote
 // @access  Private (requires login)
 export const upvoteSuggestion = async (req, res) => {
   try {
@@ -403,7 +400,7 @@ export const getAdminSuggestionNotifications = async (req, res) => {
   }
 };
 
-// 🔔 User Notifications (In-app)
+// User Notifications (In-app)
 export const getUserSuggestionNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({

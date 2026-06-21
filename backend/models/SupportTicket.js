@@ -37,6 +37,10 @@ const supportTicketSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    adminResponse: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

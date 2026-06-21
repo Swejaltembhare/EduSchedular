@@ -41,7 +41,7 @@ const Suggestions = ({ onClose }) => {
           setTotalSuggestions(response.data.stats?.total || 0);
 
           // Calculate pagination
-          const total = suggestions.length;
+          const total = response.data.suggestions.length;
           setTotalPages(Math.ceil(total / SUGGESTIONS_PER_PAGE));
           setHasMore(total > SUGGESTIONS_PER_PAGE);
         }
@@ -111,13 +111,7 @@ const Suggestions = ({ onClose }) => {
 
     try {
       // Real API call with occupation included
-      const response = await axios.post(`${API_URL}/suggestions`, {
-        ...formData,
-        occupation: {
-          type: String,
-          default: "Student",
-        },
-      });
+     const response = await axios.post(`${API_URL}/suggestions`, formData);
 
       if (response.data.success) {
         setSubmitted(true);

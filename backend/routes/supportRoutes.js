@@ -1,107 +1,24 @@
+// routes/supportRoutes.js (or wherever your routes are)
 import express from "express";
-import SupportTicket from "../models/SupportTicket.js";
-import emailService from "../services/emailService.js";
+import {
+  createSupportTicket,
+  getTicketStatus,
+  getAllTickets,
+  updateTicketStatus,
+  deleteTicket,
+  getTicketsByEmail,
+} from "../controllers/contactController.js";
 
 const router = express.Router();
 
-// Create support ticket
-router.post("/tickets", async (req, res) => {
-  try {
-    const { name, email, subject, message, urgencyLevel } = req.body;
+// Public routes
+router.post("/tickets", createSupportTicket);
+router.get("/tickets/:ticketNumber", getTicketStatus);
+router.get("/my-tickets", getTicketsByEmail);
 
-    // Validation
-    if (!name || !email || !subject || !message) {
-      console.log("Validation failed: Missing fields");
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields: name, email, subject, message",
-      });
-    }
-
-    // Create ticket
-    const ticket = new SupportTicket({
-      name,
-      email,
-      subject,
-      message,
-      urgencyLevel: urgencyLevel || "medium",
-    });
-
-    await ticket.save();
-    console.log("Ticket created:", ticket.ticketNumber);
-
-    // Send emails (don't fail if email fails)
-    const emailResults = {
-      userConfirmation: false,
-      adminNotification: false
-    };
-
-    try {
-      // 1. Send confirmation to USER (who submitted the ticket)
-      const userResult = await emailService.sendSupportConfirmation(ticket);
-      emailResults.userConfirmation = userResult.success;
-      console.log(`User confirmation email sent to ${ticket.email}:`, userResult.success);
-    } catch (emailError) {
-      console.error("Failed to send user confirmation email:", emailError.message);
-    }
-
-    try {
-      // 2. Send notification to ADMIN (supporteduschedular@gmail.com)
-      const adminResult = await emailService.sendSupportNotification(ticket);
-      emailResults.adminNotification = adminResult.success;
-      console.log("Admin notification email sent:", adminResult.success);
-    } catch (emailError) {
-      console.error("Failed to send admin notification email:", emailError.message);
-    }
-
-    res.status(201).json({
-      success: true,
-      message: "Support ticket created successfully",
-      ticket: {
-        number: ticket.ticketNumber,
-        status: ticket.status,
-      },
-      emailStatus: emailResults
-    });
-  } catch (error) {
-    console.error("❌ Error creating support ticket:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to create support ticket",
-    });
-  }
-});
-
-// Get ticket status
-router.get("/tickets/:ticketNumber", async (req, res) => {
-  try {
-    const ticket = await SupportTicket.findOne({
-      ticketNumber: req.params.ticketNumber,
-    });
-
-    if (!ticket) {
-      return res.status(404).json({
-        success: false,
-        message: "Ticket not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      ticket: {
-        number: ticket.ticketNumber,
-        status: ticket.status,
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching ticket:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch ticket",
-    });
-  }
-});
+// Admin routes (add authentication middleware in production)
+router.get("/tickets", getAllTickets);
+router.put("/tickets/:ticketNumber/status", updateTicketStatus);
+router.delete("/tickets/:ticketNumber", deleteTicket);
 
 export default router;

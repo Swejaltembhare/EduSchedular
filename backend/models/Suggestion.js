@@ -13,9 +13,21 @@ const suggestionSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    occupation: {
+      type: String,
+      enum: ["Student", "Teacher", "Admin", "Other"],
+      default: "Student",
+    },
     category: {
       type: String,
-      enum: ["Feature Request", "Bug Report", "Improvement", "UI/UX Feedback", "Performance", "General Feedback"],
+      enum: [
+        "Feature Request",
+        "Bug Report",
+        "Improvement",
+        "UI/UX Feedback",
+        "Performance",
+        "General Feedback",
+      ],
       default: "Feature Request",
     },
     priority: {
@@ -47,10 +59,12 @@ const suggestionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    upvotedBy: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    }],
+    upvotedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     adminResponse: {
       type: String,
       default: "",
@@ -59,7 +73,7 @@ const suggestionSchema = new mongoose.Schema(
       type: Date,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Index for better query performance
