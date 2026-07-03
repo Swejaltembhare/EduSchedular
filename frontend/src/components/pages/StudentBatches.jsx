@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import batchService from '../../services/batchService';
-import subjectService from '../../services/subjectService';
+import batchService from "../../services/batchService";
+import subjectService from "../../services/subjectService";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 
 const StudentBatches = () => {
-  const { getUserDepartment, user } = useAuth();
+  const { user } = useAuth();
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
+  const [selectedDepartment, setSelectedDepartment] =
+    useState("All Departments");
   const [selectedSemester, setSelectedSemester] = useState("All Semesters");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -21,20 +23,22 @@ const StudentBatches = () => {
   const [realSubjects, setRealSubjects] = useState([]);
   const [batchSubjects, setBatchSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
-  // State for view timetable modal
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTimetable, setSelectedTimetable] = useState(null);
   const [loadingTimetable, setLoadingTimetable] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-
-  // Ref for timetable content
   const timetableRef = useRef(null);
 
-  // Days of week
-  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const daysOfWeek = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
 
-  // Fixed time slots list (same as Timetable.jsx)
   const timeSlotsList = [
     "09:30-10:30",
     "10:30-11:30",
@@ -43,19 +47,16 @@ const StudentBatches = () => {
     "13:30-14:00",
     "14:00-15:00",
     "15:00-16:00",
-    "16:00-17:00"
+    "16:00-17:00",
   ];
 
-  // Get next time slot function (same as Timetable.jsx)
   const getNextTimeSlot = (currentSlot) => {
     const index = timeSlotsList.indexOf(currentSlot);
     return timeSlotsList[index + 1];
   };
 
-  // Get current year
   const currentYear = new Date().getFullYear();
 
-  // Format current academic year as "2023-2024"
   const getCurrentAcademicYear = () => {
     const year = new Date().getFullYear();
     return `${year}-${year + 1}`;
@@ -70,10 +71,9 @@ const StudentBatches = () => {
     startYear: currentYear,
     endYear: currentYear + 4,
     totalStudents: 0,
-    status: "Active"
+    status: "Active",
   });
 
-  // Departments and semesters for dropdowns
   const departments = [
     "Computer Science Engineering",
     "Information Technology",
@@ -84,22 +84,18 @@ const StudentBatches = () => {
     "Civil Engineering",
     "Electrical Engineering",
     "Mechanical Engineering",
-    "Robotics"
+    "Robotics",
   ];
 
   const statusOptions = ["Active", "Graduated", "Inactive"];
-
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
-  // Convert semester number to text for display
   const getSemesterText = (semesterNumber) => {
     return `Semester ${semesterNumber}`;
   };
 
-  // Get break icon function with Font Awesome icons
   const getBreakIcon = (breakName) => {
     const name = breakName?.toLowerCase() || "";
-
     if (name.includes("lunch")) {
       return {
         icon: <i className="fas fa-utensils mr-1"></i>,
@@ -124,36 +120,6 @@ const StudentBatches = () => {
         color: "text-purple-600",
         bg: "bg-purple-100",
       };
-    } else if (name.includes("gym")) {
-      return {
-        icon: <i className="fas fa-dumbbell mr-1"></i>,
-        color: "text-gray-600",
-        bg: "bg-gray-100",
-      };
-    } else if (name.includes("music")) {
-      return {
-        icon: <i className="fas fa-music mr-1"></i>,
-        color: "text-indigo-600",
-        bg: "bg-indigo-100",
-      };
-    } else if (name.includes("yoga")) {
-      return {
-        icon: <i className="fas fa-pray mr-1"></i>,
-        color: "text-teal-600",
-        bg: "bg-teal-100",
-      };
-    } else if (name.includes("game")) {
-      return {
-        icon: <i className="fas fa-gamepad mr-1"></i>,
-        color: "text-violet-600",
-        bg: "bg-violet-100",
-      };
-    } else if (name.includes("snack")) {
-      return {
-        icon: <i className="fas fa-apple-alt mr-1"></i>,
-        color: "text-red-600",
-        bg: "bg-red-100",
-      };
     } else {
       return {
         icon: <i className="fas fa-coffee mr-1"></i>,
@@ -163,7 +129,6 @@ const StudentBatches = () => {
     }
   };
 
-  // Get sorted entries for a day (same as Timetable.jsx)
   const getSortedEntriesForDay = (timetable, day) => {
     const classes = (timetable.schedule || [])
       .filter((s) => s && s.day === day)
@@ -193,7 +158,6 @@ const StudentBatches = () => {
     });
   };
 
-  // Get display text (same as Timetable.jsx)
   const getDisplayText = (item) => {
     if (!item) return "";
     if (typeof item === "object") {
@@ -202,7 +166,6 @@ const StudentBatches = () => {
     return item;
   };
 
-  // Download timetable as PDF
   const downloadTimetableAsPDF = async () => {
     if (!timetableRef.current) {
       alert("No timetable content to download");
@@ -212,19 +175,19 @@ const StudentBatches = () => {
     setDownloading(true);
 
     try {
-      const htmlToImage = await import('html-to-image');
-      const jsPDF = (await import('jspdf')).default;
+      const htmlToImage = await import("html-to-image");
+      const jsPDF = (await import("jspdf")).default;
 
       const element = timetableRef.current;
 
       const cloneElement = element.cloneNode(true);
-      cloneElement.style.padding = '20px';
-      cloneElement.style.backgroundColor = '#ffffff';
+      cloneElement.style.padding = "20px";
+      cloneElement.style.backgroundColor = "#ffffff";
 
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "-9999px";
       container.appendChild(cloneElement);
       document.body.appendChild(container);
 
@@ -232,42 +195,40 @@ const StudentBatches = () => {
         const dataUrl = await htmlToImage.toPng(cloneElement, {
           quality: 1,
           pixelRatio: 3,
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
           cacheBust: true,
           style: {
-            padding: '20px',
-            margin: '0',
-            width: '100%'
-          }
+            padding: "20px",
+            margin: "0",
+            width: "100%",
+          },
         });
 
         const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a4',
+          orientation: "landscape",
+          unit: "mm",
+          format: "a4",
           putOnlyUsedFonts: true,
-          compress: true
+          compress: true,
         });
 
         const imgWidth = 280;
-        const imgHeight = (cloneElement.offsetHeight * imgWidth) / cloneElement.offsetWidth;
+        const imgHeight =
+          (cloneElement.offsetHeight * imgWidth) / cloneElement.offsetWidth;
 
-        pdf.addImage(dataUrl, 'PNG', 5, 5, imgWidth, imgHeight);
-        pdf.save(`${selectedTimetable.name.replace(/\s/g, '_')}_Timetable.pdf`);
-
+        pdf.addImage(dataUrl, "PNG", 5, 5, imgWidth, imgHeight);
+        pdf.save(`${selectedTimetable.name.replace(/\s/g, "_")}_Timetable.pdf`);
       } finally {
         document.body.removeChild(container);
       }
-
     } catch (error) {
-      console.error('Error downloading timetable:', error);
-      alert('Failed to download timetable. Error: ' + error.message);
+      console.error("Error downloading timetable:", error);
+      alert("Failed to download timetable. Error: " + error.message);
     } finally {
       setDownloading(false);
     }
   };
 
-  // Download timetable as PNG
   const downloadTimetableAsPNG = async () => {
     if (!timetableRef.current) {
       alert("No timetable content to download");
@@ -277,18 +238,18 @@ const StudentBatches = () => {
     setDownloading(true);
 
     try {
-      const htmlToImage = await import('html-to-image');
+      const htmlToImage = await import("html-to-image");
 
       const element = timetableRef.current;
 
       const cloneElement = element.cloneNode(true);
-      cloneElement.style.padding = '20px';
-      cloneElement.style.backgroundColor = '#ffffff';
+      cloneElement.style.padding = "20px";
+      cloneElement.style.backgroundColor = "#ffffff";
 
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "-9999px";
       container.appendChild(cloneElement);
       document.body.appendChild(container);
 
@@ -296,28 +257,25 @@ const StudentBatches = () => {
         const dataUrl = await htmlToImage.toPng(cloneElement, {
           quality: 1,
           pixelRatio: 3,
-          backgroundColor: '#ffffff',
-          cacheBust: true
+          backgroundColor: "#ffffff",
+          cacheBust: true,
         });
 
-        const link = document.createElement('a');
-        link.download = `${selectedTimetable.name.replace(/\s/g, '_')}_Timetable.png`;
+        const link = document.createElement("a");
+        link.download = `${selectedTimetable.name.replace(/\s/g, "_")}_Timetable.png`;
         link.href = dataUrl;
         link.click();
-
       } finally {
         document.body.removeChild(container);
       }
-
     } catch (error) {
-      console.error('Error downloading timetable:', error);
-      alert('Failed to download timetable. Error: ' + error.message);
+      console.error("Error downloading timetable:", error);
+      alert("Failed to download timetable. Error: " + error.message);
     } finally {
       setDownloading(false);
     }
   };
 
-  // Fetch batches from API
   const fetchBatches = async () => {
     try {
       setLoading(true);
@@ -335,17 +293,21 @@ const StudentBatches = () => {
 
       const allSubjects = await fetchAllSubjects();
 
-      const batchesWithDefaults = batchesData.map(batch => {
+      const batchesWithDefaults = batchesData.map((batch) => {
         let subjectCount = 0;
         if (allSubjects.length > 0) {
-          subjectCount = allSubjects.filter(subject =>
-            subject.department === batch.department &&
-            subject.semester === getSemesterText(batch.currentSemester)
+          subjectCount = allSubjects.filter(
+            (subject) =>
+              subject.department === batch.department &&
+              subject.semester === getSemesterText(batch.currentSemester),
           ).length;
         }
 
         let formattedAcademicYear = batch.academicYear;
-        if (batch.academicYear && !batch.academicYear.toString().includes('-')) {
+        if (
+          batch.academicYear &&
+          !batch.academicYear.toString().includes("-")
+        ) {
           const year = parseInt(batch.academicYear);
           formattedAcademicYear = `${year}-${year + 1}`;
         }
@@ -354,7 +316,7 @@ const StudentBatches = () => {
           ...batch,
           semesterText: getSemesterText(batch.currentSemester || 1),
           subjectCount: subjectCount,
-          academicYear: formattedAcademicYear || getCurrentAcademicYear()
+          academicYear: formattedAcademicYear || getCurrentAcademicYear(),
         };
       });
 
@@ -370,7 +332,6 @@ const StudentBatches = () => {
     }
   };
 
-  // Fetch all subjects from the subject API
   const fetchAllSubjects = async () => {
     try {
       const response = await subjectService.getAll();
@@ -378,37 +339,36 @@ const StudentBatches = () => {
       setRealSubjects(subjects);
       return subjects;
     } catch (err) {
-      console.error('Error fetching all subjects:', err);
+      console.error("Error fetching all subjects:", err);
       return [];
     }
   };
 
-  // Directly fetch and show timetable for a batch
   const fetchAndShowTimetable = async (batch) => {
     setLoadingTimetable(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/timetables?batch=${batch._id}`);
-      const data = await response.json();
+
+      const response = await api.get(`/timetables?batch=${batch._id}`);
+      const data = response.data;
 
       if (data.success && data.data && data.data.length > 0) {
         const timetableId = data.data[0]._id;
+          const timetableResponse = await api.get(`/timetables/${timetableId}`);
 
-        const timetableResponse = await fetch(`http://localhost:5000/api/timetables/${timetableId}`);
-        const timetableData = await timetableResponse.json();
-
+         const timetableData = timetableResponse.data;
         if (timetableData.success && timetableData.data) {
           setSelectedTimetable(timetableData.data);
           setShowViewModal(true);
         } else {
-          alert('Error loading timetable');
+          alert("Error loading timetable");
         }
       } else {
-        alert('No timetable found for this batch');
+        alert("No timetable found for this batch");
       }
     } catch (err) {
-      console.error('Error fetching timetable:', err);
-      alert('Failed to load timetable');
+      console.error("Error fetching timetable:", err);
+      alert("Failed to load timetable");
     } finally {
       setLoadingTimetable(false);
     }
@@ -419,12 +379,14 @@ const StudentBatches = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.role === "user") {
-      setSelectedDepartment(getUserDepartment());
+    if (user?.role === "user" && user?.department) {
+      setSelectedDepartment(user.department);
+      if (user?.semester) {
+        setSelectedSemester(`Semester ${user.semester}`);
+      }
     }
   }, [user]);
 
-  // Handle view subjects for a batch
   const handleViewSubjects = async (batch) => {
     setSelectedBatch(batch);
     setLoadingSubjects(true);
@@ -433,9 +395,10 @@ const StudentBatches = () => {
       const allSubjects = await fetchAllSubjects();
 
       if (allSubjects.length > 0 && batch) {
-        const filteredSubjects = allSubjects.filter(subject =>
-          subject.department === batch.department &&
-          subject.semester === getSemesterText(batch.currentSemester)
+        const filteredSubjects = allSubjects.filter(
+          (subject) =>
+            subject.department === batch.department &&
+            subject.semester === getSemesterText(batch.currentSemester),
         );
 
         setBatchSubjects(filteredSubjects);
@@ -443,7 +406,7 @@ const StudentBatches = () => {
         setBatchSubjects([]);
       }
     } catch (err) {
-      console.error('Error fetching subjects:', err);
+      console.error("Error fetching subjects:", err);
       setBatchSubjects([]);
     } finally {
       setLoadingSubjects(false);
@@ -452,9 +415,22 @@ const StudentBatches = () => {
     setShowSubjectsModal(true);
   };
 
-  // Filter batches
   const filteredBatches = (batches || []).filter((batch) => {
     if (!batch || typeof batch !== "object") return false;
+
+    if (user?.role === "user") {
+
+      const userSemesterNumber = user?.semester
+        ? parseInt(user.semester)
+        : null;
+
+      if (!userSemesterNumber) return false;
+
+      return (
+        batch.department === user?.department &&
+        batch.currentSemester === userSemesterNumber
+      );
+    }
 
     const name = batch.name || "";
     const code = batch.code || "";
@@ -470,9 +446,10 @@ const StudentBatches = () => {
       selectedDepartment === "All Departments" ||
       batchDepartment === selectedDepartment;
 
-    const filterSemesterNumber = selectedSemester === "All Semesters"
-      ? null
-      : parseInt(selectedSemester.replace("Semester ", ""));
+    const filterSemesterNumber =
+      selectedSemester === "All Semesters"
+        ? null
+        : parseInt(selectedSemester.replace("Semester ", ""));
 
     const matchesSemester =
       selectedSemester === "All Semesters" ||
@@ -481,14 +458,19 @@ const StudentBatches = () => {
     return matchesSearch && matchesDepartment && matchesSemester;
   });
 
-  // Clear filters function
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedDepartment("All Departments");
-    setSelectedSemester("All Semesters");
+    if (user?.role === "user") {
+      setSelectedDepartment(user?.department || "All Departments");
+      setSelectedSemester(
+        user?.semester ? `Semester ${user.semester}` : "All Semesters",
+      );
+    } else {
+      setSelectedDepartment("All Departments");
+      setSelectedSemester("All Semesters");
+    }
   };
 
-  // Delete batch function
   const handleDeleteBatch = async (id) => {
     if (!id) {
       alert("Invalid batch ID");
@@ -513,7 +495,6 @@ const StudentBatches = () => {
     }
   };
 
-  // Open Edit Modal
   const openEditModal = (batch) => {
     if (!batch || !batch._id) {
       alert("Invalid batch data");
@@ -523,7 +504,7 @@ const StudentBatches = () => {
     setEditingBatch(batch);
 
     let academicYear = batch.academicYear;
-    if (academicYear && !academicYear.toString().includes('-')) {
+    if (academicYear && !academicYear.toString().includes("-")) {
       const year = parseInt(academicYear);
       academicYear = `${year}-${year + 1}`;
     }
@@ -537,13 +518,12 @@ const StudentBatches = () => {
       startYear: batch.startYear || currentYear,
       endYear: batch.endYear || currentYear + 4,
       totalStudents: batch.totalStudents || 0,
-      status: batch.status || "Active"
+      status: batch.status || "Active",
     });
     setIsEditModalOpen(true);
     setApiError(null);
   };
 
-  // Close Modals
   const closeModals = () => {
     setIsAddModalOpen(false);
     setIsEditModalOpen(false);
@@ -558,38 +538,36 @@ const StudentBatches = () => {
       startYear: currentYear,
       endYear: currentYear + 4,
       totalStudents: 0,
-      status: "Active"
+      status: "Active",
     });
   };
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "academicYear") {
       setNewBatch((prev) => ({
         ...prev,
-        academicYear: value
+        academicYear: value,
       }));
     } else if (name === "currentSemester") {
       setNewBatch((prev) => ({
         ...prev,
-        [name]: parseInt(value) || 1
+        [name]: parseInt(value) || 1,
       }));
     } else if (name === "startYear" || name === "endYear") {
       setNewBatch((prev) => ({
         ...prev,
-        [name]: parseInt(value) || currentYear
+        [name]: parseInt(value) || currentYear,
       }));
     } else {
       setNewBatch((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
-  // Add Batch Functionality
   const handleAddBatch = async () => {
     if (!newBatch.name.trim()) {
       alert("Please enter batch name");
@@ -599,7 +577,7 @@ const StudentBatches = () => {
       alert("Please enter batch code");
       return;
     }
-    if (!newBatch.academicYear || !newBatch.academicYear.includes('-')) {
+    if (!newBatch.academicYear || !newBatch.academicYear.includes("-")) {
       alert("Please enter academic year in format YYYY-YYYY (e.g., 2023-2024)");
       return;
     }
@@ -615,7 +593,7 @@ const StudentBatches = () => {
         academicYear: newBatch.academicYear,
         currentSemester: newBatch.currentSemester,
         startYear: parseInt(newBatch.startYear) || currentYear,
-        endYear: parseInt(newBatch.endYear) || (currentYear + 4),
+        endYear: parseInt(newBatch.endYear) || currentYear + 4,
         totalStudents: parseInt(newBatch.totalStudents) || 0,
         status: newBatch.status,
       };
@@ -646,7 +624,6 @@ const StudentBatches = () => {
     }
   };
 
-  // Edit Batch Functionality
   const handleEditBatch = async () => {
     if (!editingBatch) return;
 
@@ -658,7 +635,7 @@ const StudentBatches = () => {
       alert("Please enter batch code");
       return;
     }
-    if (!newBatch.academicYear || !newBatch.academicYear.includes('-')) {
+    if (!newBatch.academicYear || !newBatch.academicYear.includes("-")) {
       alert("Please enter academic year in format YYYY-YYYY (e.g., 2023-2024)");
       return;
     }
@@ -674,7 +651,7 @@ const StudentBatches = () => {
         academicYear: newBatch.academicYear,
         currentSemester: newBatch.currentSemester,
         startYear: parseInt(newBatch.startYear) || currentYear,
-        endYear: parseInt(newBatch.endYear) || (currentYear + 4),
+        endYear: parseInt(newBatch.endYear) || currentYear + 4,
         totalStudents: parseInt(newBatch.totalStudents) || 0,
         status: newBatch.status,
       };
@@ -705,33 +682,37 @@ const StudentBatches = () => {
     }
   };
 
-  // Close subjects modal
   const handleCloseSubjects = () => {
     setShowSubjectsModal(false);
     setSelectedBatch(null);
     setBatchSubjects([]);
   };
 
-  // Get status color class
   const getStatusColor = (status) => {
     switch (status) {
-      case "Active": return "bg-green-100 text-green-800";
-      case "Graduated": return "bg-green-100 text-green-800";
-      case "Inactive": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Graduated":
+        return "bg-green-100 text-green-800";
+      case "Inactive":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  // Calculate batch statistics
   const calculateStats = () => {
     const totalBatches = (batches || []).length;
-    const activeBatches = (batches || []).filter(b => b.status === "Active").length;
-    const totalStudents = (batches || []).reduce((sum, batch) => sum + (batch.totalStudents || 0), 0);
-
+    const activeBatches = (batches || []).filter(
+      (b) => b.status === "Active",
+    ).length;
+    const totalStudents = (batches || []).reduce(
+      (sum, batch) => sum + (batch.totalStudents || 0),
+      0,
+    );
     return { totalBatches, activeBatches, totalStudents };
   };
 
-  // Loading state
   if (loading && (batches || []).length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 pt-24 flex items-center justify-center">
@@ -745,9 +726,7 @@ const StudentBatches = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
         <div className="pt-24 text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-600 mb-2">
             Student Batches Management
@@ -757,7 +736,6 @@ const StudentBatches = () => {
           </p>
         </div>
 
-        {/* Statistics Cards */}
         {(batches || []).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -767,7 +745,9 @@ const StudentBatches = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Batches</p>
-                  <p className="text-2xl font-bold text-gray-900">{calculateStats().totalBatches}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {calculateStats().totalBatches}
+                  </p>
                 </div>
               </div>
             </div>
@@ -779,7 +759,9 @@ const StudentBatches = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Active Batches</p>
-                  <p className="text-2xl font-bold text-gray-900">{calculateStats().activeBatches}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {calculateStats().activeBatches}
+                  </p>
                 </div>
               </div>
             </div>
@@ -791,14 +773,15 @@ const StudentBatches = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Students</p>
-                  <p className="text-2xl font-bold text-gray-900">{calculateStats().totalStudents}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {calculateStats().totalStudents}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Error Display */}
         {apiError && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
             <div className="flex justify-between items-center">
@@ -813,7 +796,6 @@ const StudentBatches = () => {
           </div>
         )}
 
-        {/* Search and Filters Section */}
         <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -838,12 +820,18 @@ const StudentBatches = () => {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Department
               </label>
-              
-              {user?.role === "admin" && (
+              {user?.role === "user" ? (
+                <input
+                  type="text"
+                  value={user?.department || ""}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-600"
+                />
+              ) : (
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="All Departments">All Departments</option>
                   {departments.map((dept) => (
@@ -859,18 +847,27 @@ const StudentBatches = () => {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Semester
               </label>
-              <select
-                value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="All Semesters">All Semesters</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                  <option key={sem} value={`Semester ${sem}`}>
-                    Semester {sem}
-                  </option>
-                ))}
-              </select>
+              {user?.role === "user" ? (
+                <input
+                  type="text"
+                  value={user?.semester ? `Semester ${user.semester}` : ""}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-600"
+                />
+              ) : (
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="All Semesters">All Semesters</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                    <option key={sem} value={`Semester ${sem}`}>
+                      Semester {sem}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
 
@@ -881,22 +878,25 @@ const StudentBatches = () => {
             >
               Clear Filters
             </button>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-            >
-              <i className="fas fa-plus mr-2"></i>
-              Add New Batch
-            </button>
+            {user?.role === "admin" && (
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Add New Batch
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Error State */}
         {error && (batches || []).length === 0 && (
           <div className="text-center py-12">
             <i className="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">{error}</h3>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {error}
+            </h3>
             <button
               onClick={fetchBatches}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -906,7 +906,6 @@ const StudentBatches = () => {
           </div>
         )}
 
-        {/* Batches Grid */}
         {!error && (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredBatches.map((batch) => (
@@ -965,12 +964,12 @@ const StudentBatches = () => {
                     <div className="flex items-center">
                       <i className="fas fa-graduation-cap text-gray-400 w-5"></i>
                       <span className="ml-2 text-gray-600">
-                        <strong>Duration:</strong> {batch.startYear} - {batch.endYear}
+                        <strong>Duration:</strong> {batch.startYear} -{" "}
+                        {batch.endYear}
                       </span>
                     </div>
                   </div>
 
-                  {/* Buttons Section */}
                   <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => handleViewSubjects(batch)}
@@ -992,20 +991,24 @@ const StudentBatches = () => {
                           <i className="fas fa-calendar-alt"></i>
                         )}
                       </button>
-                      <button
-                        onClick={() => openEditModal(batch)}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
-                        title="Edit"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBatch(batch._id)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200"
-                        title="Delete"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      {user?.role === "admin" && (
+                        <>
+                          <button
+                            onClick={() => openEditModal(batch)}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                            title="Edit"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBatch(batch._id)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200"
+                            title="Delete"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1014,27 +1017,34 @@ const StudentBatches = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!error && filteredBatches.length === 0 && (batches || []).length > 0 && (
-          <div className="text-center py-12">
-            <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-600">No batches match your search</h3>
-            <p className="text-gray-500">Try adjusting your search or filters</p>
-          </div>
-        )}
+        {!error &&
+          filteredBatches.length === 0 &&
+          (batches || []).length > 0 && (
+            <div className="text-center py-12">
+              <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>
+              <h3 className="text-xl font-semibold text-gray-600">
+                No batches match your search
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your search or filters
+              </p>
+            </div>
+          )}
 
-        {/* No Batches State */}
         {!error && (batches || []).length === 0 && (
           <div className="text-center py-12">
             <i className="fas fa-graduation-cap text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-600">No batches yet</h3>
-            <p className="text-gray-500">Add your first batch using the button below</p>
+            <h3 className="text-xl font-semibold text-gray-600">
+              No batches yet
+            </h3>
+            <p className="text-gray-500">
+              Add your first batch using the button below
+            </p>
           </div>
         )}
       </div>
 
-      {/* Add Batch Modal */}
-      {isAddModalOpen && (
+      {isAddModalOpen && user?.role === "admin" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-lg">
@@ -1044,7 +1054,7 @@ const StudentBatches = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Batch Name *
                 </label>
                 <input
@@ -1061,7 +1071,7 @@ const StudentBatches = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Batch Code *
                   </label>
                   <input
@@ -1077,7 +1087,7 @@ const StudentBatches = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Department *
                   </label>
                   <select
@@ -1098,7 +1108,7 @@ const StudentBatches = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Academic Year * (Format: YYYY-YYYY)
                   </label>
                   <input
@@ -1115,7 +1125,7 @@ const StudentBatches = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Current Semester *
                   </label>
                   <select
@@ -1136,7 +1146,7 @@ const StudentBatches = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Start Year *
                   </label>
                   <input
@@ -1153,7 +1163,7 @@ const StudentBatches = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     End Year *
                   </label>
                   <input
@@ -1172,7 +1182,7 @@ const StudentBatches = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Total Students
                   </label>
                   <input
@@ -1187,7 +1197,7 @@ const StudentBatches = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Status
                   </label>
                   <select
@@ -1210,7 +1220,7 @@ const StudentBatches = () => {
             <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
               <button
                 onClick={closeModals}
-                className="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -1234,8 +1244,7 @@ const StudentBatches = () => {
         </div>
       )}
 
-      {/* Edit Batch Modal */}
-      {isEditModalOpen && editingBatch && (
+      {isEditModalOpen && editingBatch && user?.role === "admin" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-lg">
@@ -1243,16 +1252,31 @@ const StudentBatches = () => {
               <p className="text-blue-100 mt-1">Update batch information</p>
             </div>
 
-            <div className="p-6">
-              <div className="space-y-4">
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Batch Name *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newBatch.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Batch Name *
+                    Batch Code *
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={newBatch.name}
+                    name="code"
+                    value={newBatch.code}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                     disabled={isSubmitting}
@@ -1260,150 +1284,133 @@ const StudentBatches = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Batch Code *
-                    </label>
-                    <input
-                      type="text"
-                      name="code"
-                      value={newBatch.code}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Department *
+                  </label>
+                  <select
+                    name="department"
+                    value={newBatch.department}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Department *
-                    </label>
-                    <select
-                      name="department"
-                      value={newBatch.department}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                    >
-                      {departments.map((dept) => (
-                        <option key={dept} value={dept}>
-                          {dept}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Academic Year *
+                  </label>
+                  <input
+                    type="text"
+                    name="academicYear"
+                    value={newBatch.academicYear}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 2023-2024"
+                    pattern="\d{4}-\d{4}"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Academic Year
-                    </label>
-                    <input
-                      type="text"
-                      name="academicYear"
-                      value={newBatch.academicYear}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 2023-2024"
-                      pattern="\d{4}-\d{4}"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Current Semester *
+                  </label>
+                  <select
+                    name="currentSemester"
+                    value={newBatch.currentSemester}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  >
+                    {semesters.map((sem) => (
+                      <option key={sem} value={sem}>
+                        Semester {sem}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Current Semester *
-                    </label>
-                    <select
-                      name="currentSemester"
-                      value={newBatch.currentSemester}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                    >
-                      {semesters.map((sem) => (
-                        <option key={sem} value={sem}>
-                          Semester {sem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Start Year *
+                  </label>
+                  <input
+                    type="number"
+                    name="startYear"
+                    value={newBatch.startYear}
+                    onChange={handleInputChange}
+                    min="2000"
+                    max="2100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Start Year *
-                    </label>
-                    <input
-                      type="number"
-                      name="startYear"
-                      value={newBatch.startYear}
-                      onChange={handleInputChange}
-                      min="2000"
-                      max="2100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    End Year *
+                  </label>
+                  <input
+                    type="number"
+                    name="endYear"
+                    value={newBatch.endYear}
+                    onChange={handleInputChange}
+                    min="2000"
+                    max="2100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      End Year *
-                    </label>
-                    <input
-                      type="number"
-                      name="endYear"
-                      value={newBatch.endYear}
-                      onChange={handleInputChange}
-                      min="2000"
-                      max="2100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                      required
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Total Students
+                  </label>
+                  <input
+                    type="number"
+                    name="totalStudents"
+                    value={newBatch.totalStudents}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Total Students
-                    </label>
-                    <input
-                      type="number"
-                      name="totalStudents"
-                      value={newBatch.totalStudents}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={newBatch.status}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      disabled={isSubmitting}
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    value={newBatch.status}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -1435,7 +1442,6 @@ const StudentBatches = () => {
         </div>
       )}
 
-      {/* View Subjects Modal */}
       {showSubjectsModal && selectedBatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -1446,9 +1452,9 @@ const StudentBatches = () => {
                     {selectedBatch.name} - Subjects
                   </h2>
                   <p className="text-blue-100 mt-1">
-                    Department: {selectedBatch.department} |
-                    Semester: {getSemesterText(selectedBatch.currentSemester)} |
-                    Total Subjects: {(batchSubjects || []).length}
+                    Department: {selectedBatch.department} | Semester:{" "}
+                    {getSemesterText(selectedBatch.currentSemester)} | Total
+                    Subjects: {(batchSubjects || []).length}
                   </p>
                 </div>
               </div>
@@ -1463,31 +1469,49 @@ const StudentBatches = () => {
               ) : (batchSubjects || []).length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(batchSubjects || []).map((subject) => (
-                    <div key={subject._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md">
+                    <div
+                      key={subject._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md"
+                    >
                       <div className="mb-3">
-                        <h4 className="font-bold text-gray-900">{subject.name}</h4>
+                        <h4 className="font-bold text-gray-900">
+                          {subject.name}
+                        </h4>
                         <p className="text-sm text-gray-600">{subject.code}</p>
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex items-center">
-                          <span className="text-sm text-gray-500 w-16">Credits:</span>
-                          <span className="font-medium">{subject.credits || 3}</span>
+                          <span className="text-sm text-gray-500 w-16">
+                            Credits:
+                          </span>
+                          <span className="font-medium">
+                            {subject.credits || 3}
+                          </span>
                         </div>
                         <div className="flex items-center">
-                          <span className="text-sm text-gray-500 w-16">Type:</span>
-                          <span className={`px-2 py-1 text-xs rounded-full ${(subject.type || 'Core') === 'Core' ? 'bg-green-100 text-green-800' :
-                            (subject.type || 'Core') === 'Elective' ? 'bg-purple-100 text-purple-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {subject.type || 'Core'}
+                          <span className="text-sm text-gray-500 w-16">
+                            Type:
+                          </span>
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              (subject.type || "Core") === "Core"
+                                ? "bg-green-100 text-green-800"
+                                : (subject.type || "Core") === "Elective"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {subject.type || "Core"}
                           </span>
                         </div>
                       </div>
 
                       {subject.description && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
-                          <p className="text-sm text-gray-600">{subject.description}</p>
+                          <p className="text-sm text-gray-600">
+                            {subject.description}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1496,9 +1520,12 @@ const StudentBatches = () => {
               ) : (
                 <div className="text-center py-12">
                   <i className="fas fa-book text-6xl text-gray-300 mb-4"></i>
-                  <h3 className="text-xl font-semibold text-gray-600">No subjects found</h3>
+                  <h3 className="text-xl font-semibold text-gray-600">
+                    No subjects found
+                  </h3>
                   <p className="text-gray-500">
-                    No subjects assigned for {selectedBatch.department} - {getSemesterText(selectedBatch.currentSemester)}
+                    No subjects assigned for {selectedBatch.department} -{" "}
+                    {getSemesterText(selectedBatch.currentSemester)}
                   </p>
                 </div>
               )}
@@ -1516,7 +1543,6 @@ const StudentBatches = () => {
         </div>
       )}
 
-      {/* View Timetable Modal with Correct Format (Same as Timetable.jsx) */}
       {showViewModal && selectedTimetable && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
@@ -1534,14 +1560,18 @@ const StudentBatches = () => {
             </div>
 
             <div className="p-6" ref={timetableRef}>
-              {/* Weekly Schedule - Same format as Timetable.jsx */}
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-300">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2 border border-gray-300 font-semibold text-gray-600">Time</th>
+                      <th className="px-4 py-2 border border-gray-300 font-semibold text-gray-600">
+                        Time
+                      </th>
                       {daysOfWeek.map((day) => (
-                        <th key={day} className="px-4 py-2 border border-gray-300 font-semibold text-gray-600">
+                        <th
+                          key={day}
+                          className="px-4 py-2 border border-gray-300 font-semibold text-gray-600"
+                        >
                           {day}
                         </th>
                       ))}
@@ -1550,31 +1580,36 @@ const StudentBatches = () => {
                   <tbody>
                     {timeSlotsList.map((timeSlot) => (
                       <tr key={timeSlot}>
-                        <td className="px-4 py-2 border border-gray-300 font-medium bg-gray-50">{timeSlot}</td>
+                        <td className="px-4 py-2 border border-gray-300 font-medium bg-gray-50">
+                          {timeSlot}
+                        </td>
                         {daysOfWeek.map((day) => {
-                          const allEntries = getSortedEntriesForDay(selectedTimetable, day);
-                          const entries = allEntries.filter((e) => e.timeSlot === timeSlot);
+                          const allEntries = getSortedEntriesForDay(
+                            selectedTimetable,
+                            day,
+                          );
+                          const entries = allEntries.filter(
+                            (e) => e.timeSlot === timeSlot,
+                          );
                           const currentEntry = entries[0];
 
-                          // Check if previous slot has same subject (for skip)
-                          const prevSlot = timeSlotsList[timeSlotsList.indexOf(timeSlot) - 1];
+                          const prevSlot =
+                            timeSlotsList[timeSlotsList.indexOf(timeSlot) - 1];
                           const prevEntry = allEntries.find(
                             (e) =>
                               e.timeSlot === prevSlot &&
                               e.subject?._id === currentEntry?.subject?._id &&
-                              e.day === day
+                              e.day === day,
                           );
 
-                          // Skip second slot if it's a continuation
                           if (prevEntry) return null;
 
-                          // Check next slot for rowspan
                           const nextSlot = getNextTimeSlot(timeSlot);
                           const nextEntry = allEntries.find(
                             (e) =>
                               e.timeSlot === nextSlot &&
                               e.subject?._id === currentEntry?.subject?._id &&
-                              e.day === day
+                              e.day === day,
                           );
 
                           const rowSpan = nextEntry ? 2 : 1;
@@ -1587,29 +1622,41 @@ const StudentBatches = () => {
                             >
                               {entries.length > 0 ? (
                                 entries.map((entry, idx) => {
-                                  if (entry.type === "break" || entry.entryType === "break") {
+                                  if (
+                                    entry.type === "break" ||
+                                    entry.entryType === "break"
+                                  ) {
                                     const breakIcon = getBreakIcon(entry.name);
                                     return (
-                                      <div key={idx} className={`p-2 ${breakIcon.bg} rounded mb-1`}>
-                                        <div className={`font-medium text-sm ${breakIcon.color}`}>
-                                          {breakIcon.icon} {entry.name || "Break"}
+                                      <div
+                                        key={idx}
+                                        className={`p-2 ${breakIcon.bg} rounded mb-1`}
+                                      >
+                                        <div
+                                          className={`font-medium text-sm ${breakIcon.color}`}
+                                        >
+                                          {breakIcon.icon}{" "}
+                                          {entry.name || "Break"}
                                         </div>
                                       </div>
                                     );
                                   } else {
                                     return (
                                       <div key={idx} className="mb-2">
-                                        {/* Main Class */}
                                         {entry.subject && (
                                           <div className="p-2 bg-blue-100 rounded mb-1">
                                             <div className="flex justify-between items-center border border-blue-300 rounded px-2 py-1 bg-white">
                                               <span className="font-medium text-sm text-blue-800">
                                                 {getDisplayText(entry.subject)}
                                                 {entry.type && (
-                                                  <span className="ml-1 text-xs text-gray-500">({entry.type})</span>
+                                                  <span className="ml-1 text-xs text-gray-500">
+                                                    ({entry.type})
+                                                  </span>
                                                 )}
                                                 {entry.batchDivision && (
-                                                  <span className="ml-1 text-xs">-{entry.batchDivision}</span>
+                                                  <span className="ml-1 text-xs">
+                                                    -{entry.batchDivision}
+                                                  </span>
                                                 )}
                                               </span>
                                               {entry.classroom && (
@@ -1618,38 +1665,61 @@ const StudentBatches = () => {
                                                 </span>
                                               )}
                                             </div>
-                                            <div className="text-xs text-gray-600 mt-1">{getDisplayText(entry.faculty)}</div>
+                                            <div className="text-xs text-gray-600 mt-1">
+                                              {getDisplayText(entry.faculty)}
+                                            </div>
                                           </div>
                                         )}
 
-                                        {/* Parallel Classes */}
-                                        {entry.parallelClasses && entry.parallelClasses.length > 0 && (
-                                          <div className="mt-1">
-                                            {entry.parallelClasses.map((pc, pIdx) => (
-                                              <div key={pIdx} className="p-2 bg-purple-100 rounded mt-1">
-                                                <div className="flex justify-between items-center border border-purple-300 rounded px-2 py-1 bg-white">
-                                                  <span className="font-medium text-sm text-purple-800">
-                                                    {getDisplayText(pc.subject)}
-                                                    {pc.type && <span className="ml-1 text-xs text-gray-500">({pc.type})</span>}
-                                                    {pc.batchDivision && <span className="ml-1 text-xs">-{pc.batchDivision}</span>}
-                                                  </span>
-                                                  {pc.classroom && (
-                                                    <span className="text-xs font-medium text-gray-600 border-l border-purple-300 pl-2 ml-2">
-                                                      {pc.classroom.name}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                                <div className="text-xs text-gray-600 mt-1">{getDisplayText(pc.faculty)}</div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
+                                        {entry.parallelClasses &&
+                                          entry.parallelClasses.length > 0 && (
+                                            <div className="mt-1">
+                                              {entry.parallelClasses.map(
+                                                (pc, pIdx) => (
+                                                  <div
+                                                    key={pIdx}
+                                                    className="p-2 bg-purple-100 rounded mt-1"
+                                                  >
+                                                    <div className="flex justify-between items-center border border-purple-300 rounded px-2 py-1 bg-white">
+                                                      <span className="font-medium text-sm text-purple-800">
+                                                        {getDisplayText(
+                                                          pc.subject,
+                                                        )}
+                                                        {pc.type && (
+                                                          <span className="ml-1 text-xs text-gray-500">
+                                                            ({pc.type})
+                                                          </span>
+                                                        )}
+                                                        {pc.batchDivision && (
+                                                          <span className="ml-1 text-xs">
+                                                            -{pc.batchDivision}
+                                                          </span>
+                                                        )}
+                                                      </span>
+                                                      {pc.classroom && (
+                                                        <span className="text-xs font-medium text-gray-600 border-l border-purple-300 pl-2 ml-2">
+                                                          {pc.classroom.name}
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 mt-1">
+                                                      {getDisplayText(
+                                                        pc.faculty,
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                ),
+                                              )}
+                                            </div>
+                                          )}
                                       </div>
                                     );
                                   }
                                 })
                               ) : (
-                                <div className="text-gray-300 text-xs text-center">-</div>
+                                <div className="text-gray-300 text-xs text-center">
+                                  -
+                                </div>
                               )}
                             </td>
                           );

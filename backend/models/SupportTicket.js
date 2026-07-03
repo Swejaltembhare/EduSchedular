@@ -1,4 +1,3 @@
-// models/SupportTicket.js
 import mongoose from "mongoose";
 
 const supportTicketSchema = new mongoose.Schema(
@@ -45,7 +44,6 @@ const supportTicketSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Generate ticket number before saving
 supportTicketSchema.pre("save", async function(next) {
   if (!this.ticketNumber) {
     const date = new Date();

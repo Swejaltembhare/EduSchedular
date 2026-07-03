@@ -22,7 +22,6 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-// ✅ UPDATE PROFILE (Updated version)
 exports.updateProfile = async (req, res, next) => {
   try {
     const { name, email } = req.body;
@@ -34,7 +33,6 @@ exports.updateProfile = async (req, res, next) => {
       });
     }
 
-    // Find user
     const user = await User.findById(req.user.id);
     
     if (!user) {
@@ -44,13 +42,10 @@ exports.updateProfile = async (req, res, next) => {
       });
     }
 
-    // Update fields if provided
     if (name) user.name = name;
     if (email) user.email = email;
 
     await user.save();
-
-    // Get updated user without password
     const updatedUser = await User.findById(user._id).select('-password');
 
     res.status(200).json({
@@ -63,7 +58,6 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
-// ✅ CHANGE PASSWORD (Already exists, keep as is)
 exports.changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -82,10 +76,8 @@ exports.changePassword = async (req, res, next) => {
       });
     }
 
-    // Get user with password
     const user = await User.findById(req.user.id).select('+password');
 
-    // Check current password
     const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) {
       return res.status(401).json({
@@ -93,8 +85,6 @@ exports.changePassword = async (req, res, next) => {
         message: 'Current password is incorrect'
       });
     }
-
-    // Update password
     user.password = newPassword;
     await user.save();
 
@@ -107,7 +97,6 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
-// ✅ UPDATE PREFERENCES (Already exists, keep as is)
 exports.updatePreferences = async (req, res, next) => {
   try {
     const { notifications, theme, language } = req.body;
@@ -126,7 +115,6 @@ exports.updatePreferences = async (req, res, next) => {
       updateFields['preferences.language'] = language;
     }
 
-    // Check if any fields to update
     if (Object.keys(updateFields).length === 0) {
       return res.status(400).json({
         success: false,
@@ -157,19 +145,12 @@ exports.updatePreferences = async (req, res, next) => {
   }
 };
 
-// Remove faculty related code since we don't need it
-// In the existing functions, remove faculty checks
-
-// In getUser function, remove faculty check
 exports.getUser = async (req, res, next) => {
   try {
     let user;
-    
-    // If ID is provided, get that user (admin only)
     if (req.params.id) {
       user = await User.findById(req.params.id).select('-password');
     } else {
-      // Get current user (from profile route)
       user = await User.findById(req.user.id).select('-password');
     }
 
@@ -189,12 +170,9 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
-// In createUser function, remove faculty creation
 exports.createUser = async (req, res, next) => {
   try {
     const { name, email, role, department, semester, sendWelcomeEmail = true, ...otherData } = req.body;
-
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -203,13 +181,11 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    // Generate random password if not provided
     let password = req.body.password;
     if (!password) {
       password = generateRandomPassword();
     }
 
-    // Validate role
     if (!['admin', 'user'].includes(role)) {
       return res.status(400).json({
         success: false,
@@ -217,7 +193,6 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    // For user role, department and semester are required
     if (role === 'user') {
       if (!department) {
         return res.status(400).json({
@@ -233,7 +208,6 @@ exports.createUser = async (req, res, next) => {
       }
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -244,18 +218,14 @@ exports.createUser = async (req, res, next) => {
       ...otherData
     });
 
-    // Send welcome email if requested
     if (sendWelcomeEmail) {
       try {
-        // You can implement email service later
         console.log(`Welcome email would be sent to: ${user.email}`);
       } catch (emailError) {
         console.error('Failed to send welcome email:', emailError);
-        // Continue even if email fails
       }
     }
 
-    // Get user without password
     const userResponse = await User.findById(user._id).select('-password');
 
     res.status(201).json({
@@ -268,7 +238,6 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-// In updateUser function, remove faculty update
 exports.updateUser = async (req, res, next) => {
   try {
     let user = await User.findById(req.params.id);
@@ -280,12 +249,10 @@ exports.updateUser = async (req, res, next) => {
       });
     }
 
-    // Prevent updating password through this route
     if (req.body.password) {
       delete req.body.password;
     }
 
-    // Update user
     user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
@@ -301,7 +268,6 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-// In deleteUser function, remove faculty deactivation
 exports.deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -313,7 +279,6 @@ exports.deleteUser = async (req, res, next) => {
       });
     }
 
-    // Soft delete - set isActive to false
     user.isActive = false;
     await user.save();
 

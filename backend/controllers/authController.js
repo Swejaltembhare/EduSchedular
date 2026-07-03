@@ -1,5 +1,8 @@
 import User from "../models/User.js";
 import validator from "validator";
+import crypto from "crypto";
+import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
+import { sendResetEmail } from "../utils/sendResetEmail.js";
 
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
@@ -15,19 +18,25 @@ const sendTokenResponse = (user, statusCode, res) => {
       department: user.department,
       semester: user.semester,
       isActive: user.isActive,
+      isVerified: user.isVerified,
       lastLogin: user.lastLogin,
       createdAt: user.createdAt,
     },
   });
 };
 
-// ================= REGISTER =================
+const tempEmailDomains = [
+  'mailinator.com', 'guerrillamail.com', '10minutemail.com',
+  'yopmail.com', 'tempmail.com', 'throwawaymail.com',
+  'temp-mail.org', 'fakeinbox.com', 'dispostable.com',
+  'guerrillamail.net', 'guerrillamail.org', 'tempmail.net',
+  'mailnator.com', 'trashmail.com', 'spamgourmet.com'
+];
+
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role, department, semester, adminKey } =
-      req.body;
+    const { name, email, password, role, department, semester, adminKey, facultyKey } = req.body;
 
-    // Validation
     if (!name || !email || !password || !role) {
       return res.status(400).json({
         success: false,
@@ -49,6 +58,14 @@ export const register = async (req, res) => {
       });
     }
 
+    const domain = email.split('@')[1].toLowerCase();
+    if (tempEmailDomains.includes(domain)) {
+      return res.status(400).json({
+        success: false,
+        message: "Temporary email addresses are not allowed.",
+      });
+    }
+
     if (!email.endsWith("@college.edu") && !email.endsWith("@gmail.com")) {
       return res.status(400).json({
         success: false,
@@ -63,16 +80,15 @@ export const register = async (req, res) => {
       });
     }
 
-    // Validate role
-    if (!["admin", "user"].includes(role)) {
+    if (!["admin", "user", "faculty"].includes(role)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid role. Must be 'admin' or 'user'",
+        message: "Invalid role. Must be 'admin', 'user', or 'faculty'",
       });
     }
 
     const ADMIN_SECRET = process.env.ADMIN_SECRET;
-
+    const FACULTY_SECRET = process.env.FACULTY_SECRET;
     let finalRole = "user";
 
     if (role === "admin") {
@@ -85,7 +101,20 @@ export const register = async (req, res) => {
       finalRole = "admin";
     }
 
-    // Department and semester validation - ONLY for user role
+    else if (role === "faculty") {
+      if (!facultyKey || facultyKey !== FACULTY_SECRET) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid faculty key",
+        });
+      }
+      finalRole = "faculty";
+    }
+
+    else {
+      finalRole = "user";
+    }
+
     if (finalRole === "user") {
       if (!department || department === "") {
         return res.status(400).json({
@@ -102,21 +131,10 @@ export const register = async (req, res) => {
       }
     }
 
-    // For admin, set default values
     const userDepartment = finalRole === "user" ? department : undefined;
     const userSemester = finalRole === "user" ? semester : undefined;
-
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid email",
-      });
-    }
-
-    // Normalize email
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
@@ -125,17 +143,35 @@ export const register = async (req, res) => {
       });
     }
 
-    // Create user
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const user = await User.create({
       name,
       email: normalizedEmail,
       password,
-      role: finalRole, // 🔥 IMPORTANT CHANGE
+      role: finalRole,
       department: userDepartment,
       semester: userSemester,
+      isVerified: false,
+      verificationToken: verificationToken,
+      verificationTokenExpiry: verificationTokenExpiry,
     });
 
-    sendTokenResponse(user, 201, res);
+    try {
+      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+      await sendVerificationEmail(user, verificationLink);
+      console.log(`Verification email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful! Please check your email to verify your account.",
+      requiresVerification: true,
+      email: user.email,
+    });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({
@@ -145,7 +181,97 @@ export const register = async (req, res) => {
   }
 };
 
-// ================= LOGIN =================
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification token is required",
+      });
+    }
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token. Please register again or contact support.",
+      });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpiry = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Email verified successfully! You can now login.",
+    });
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Email verification failed. Please try again.",
+    });
+  }
+};
+
+export const resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified. You can login.",
+      });
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiry = verificationTokenExpiry;
+    await user.save();
+
+    const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+    await sendVerificationEmail(user, verificationLink);
+
+    res.json({
+      success: true,
+      message: "Verification email sent. Please check your inbox.",
+    });
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to resend verification email",
+    });
+  }
+};
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -157,20 +283,15 @@ export const login = async (req, res) => {
       });
     }
 
-    // Normalize email
     const normalizedEmail = email.toLowerCase().trim();
 
-    if (
-      !normalizedEmail.endsWith("@college.edu") &&
-      !normalizedEmail.endsWith("@gmail.com")
-    ) {
+    if (!normalizedEmail.endsWith("@college.edu") && !normalizedEmail.endsWith("@gmail.com")) {
       return res.status(403).json({
         success: false,
         message: "Only college or Gmail allowed",
       });
     }
 
-    // Find user
     const user = await User.findOne({
       email: normalizedEmail,
       isActive: true,
@@ -192,13 +313,12 @@ export const login = async (req, res) => {
       });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
     sendTokenResponse(user, 200, res);
   } catch (err) {
-    console.error("❌ LOGIN ERROR:", err);
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({
       success: false,
       message: err.message || "Server error",
@@ -206,7 +326,6 @@ export const login = async (req, res) => {
   }
 };
 
-// ================= GET ME =================
 export const getMe = async (req, res) => {
   res.status(200).json({
     success: true,
@@ -214,7 +333,6 @@ export const getMe = async (req, res) => {
   });
 };
 
-// ================= LOGOUT =================
 export const logout = async (req, res) => {
   res.status(200).json({
     success: true,
@@ -222,19 +340,163 @@ export const logout = async (req, res) => {
   });
 };
 
-// ================= FORGOT PASSWORD =================
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  if (!email || !validator.isEmail(email)) {
-    return res.status(400).json({
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid email required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If account exists, reset link sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiry = resetTokenExpiry;
+    await user.save({ validateBeforeSave: false });
+
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    
+    try {
+      await sendResetEmail(user, resetLink);
+    } catch (emailError) {
+      console.error("Failed to send reset email:", emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "If account exists, reset link sent",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
       success: false,
-      message: "Valid email required",
+      message: "Failed to process request",
     });
   }
+};
 
-  res.status(200).json({
-    success: true,
-    message: "If account exists, reset link sent",
-  });
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token. Please request a new one.",
+      });
+    }
+
+    user.password = newPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully! You can now login with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reset password",
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    console.log("CHANGE PASSWORD CONTROLLER HIT");
+    console.log("Request Body:", req.body);
+    console.log("User:", req.user?.email || req.user?.id);
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    const token = user.getSignedJwtToken();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully!",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to change password",
+    });
+  }
 };
