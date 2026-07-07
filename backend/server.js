@@ -25,8 +25,9 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://eduschedular-frontend.onrender.com",
   process.env.CLIENT_URL,
-];
+].filter(Boolean);
 
 app.use(
   cors({
