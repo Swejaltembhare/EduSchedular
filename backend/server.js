@@ -17,6 +17,7 @@ import settingsRoutes from "./routes/settings.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import leaveRoutes from "./routes/leaves.js";
 import noteRoutes from './routes/noteRoutes.js';
+import assignmentRoutes from "./routes/assignmentRoutes.js";
 
 dotenv.config({
   path: path.join(process.cwd(), ".env"),
@@ -66,6 +67,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/support", supportRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/notes', noteRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 app.get("/api/test", (req, res) => {
   res.json({ success: true });
