@@ -1027,11 +1027,11 @@ const Dashboard = () => {
             <h1 className="text-4xl font-bold text-gray-600 mb-2">Dashboard</h1>
             <p className="text-lg text-gray-600">EduScheduler - PCE</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="week">Last 7 days</option>
               <option value="month">Last 30 days</option>
@@ -1040,12 +1040,12 @@ const Dashboard = () => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <i
                 className={`fas fa-sync-alt ${refreshing ? "animate-spin" : ""}`}
               ></i>
-              {refreshing ? "Refreshing..." : "Refresh"}
+              <span className="hidden sm:inline">{refreshing ? "Refreshing..." : "Refresh"}</span>
             </button>
           </div>
         </div>

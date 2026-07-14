@@ -1,4 +1,36 @@
-import transporter from "../config/emailConfig.js";
+import apiInstance from "../config/emailConfig.js";
+const sendEmail = async ({ to, toName, subject, html }) => {
+  try {
+    const email = {
+      sender: {
+        name: process.env.BREVO_SENDER_NAME,
+        email: process.env.BREVO_SENDER_EMAIL,
+      },
+      to: [
+        {
+          email: to,
+          name: toName || "",
+        },
+      ],
+      subject,
+      htmlContent: html,
+    };
+
+    const response = await apiInstance.sendTransacEmail(email);
+
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error("Brevo Email Error:", error.response?.body || error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 import getSuggestionEmailTemplate from "../utils/emailTemplates.js";
 
 export const sendAdminNotification = async (suggestionData) => {
@@ -10,9 +42,12 @@ export const sendAdminNotification = async (suggestionData) => {
       html: getSuggestionEmailTemplate(suggestionData),
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent: ", info.messageId);
-    return { success: true, messageId: info.messageId };
+    return await sendEmail({
+      to: "supporteduschedular@gmail.com",
+      toName: "EduScheduler Admin",
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+    });
   } catch (error) {
     console.error("Error sending email: ", error);
     return { success: false, error: error.message };
@@ -31,7 +66,18 @@ export const sendBulkEmail = async (emails, subject, message) => {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    for (const email of emails) {
+      await sendEmail({
+        to: email,
+        subject,
+        html: `
+      <h2>${subject}</h2>
+      <p>${message}</p>
+    `,
+      });
+    }
+
+    return { success: true };
   } catch (error) {
     console.log("Email error:", error);
   }
@@ -71,9 +117,12 @@ export const sendSupportConfirmation = async (ticket) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Support confirmation sent to ${ticket.email}:`, info.messageId);
-    return { success: true, messageId: info.messageId };
+    return await sendEmail({
+      to: ticket.email,
+      toName: ticket.name,
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+    });
   } catch (error) {
     console.error("Support confirmation error:", error);
     return { success: false, error: error.message };
@@ -109,10 +158,9 @@ export const sendSupportNotification = async (ticket) => {
               </div>
               
               <p><strong>Urgency Level:</strong> 
-                <span style="background: ${
-                  ticket.urgencyLevel === 'high' ? '#FF5722' : 
-                  ticket.urgencyLevel === 'medium' ? '#FFC107' : '#4CAF50'
-                }; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">
+                <span style="background: ${ticket.urgencyLevel === 'high' ? '#FF5722' :
+          ticket.urgencyLevel === 'medium' ? '#FFC107' : '#4CAF50'
+        }; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">
                   ${ticket.urgencyLevel.toUpperCase()}
                 </span>
               </p>
@@ -132,9 +180,12 @@ export const sendSupportNotification = async (ticket) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Admin notification sent to supporteduschedular@gmail.com:`, info.messageId);
-    return { success: true, messageId: info.messageId };
+    return await sendEmail({
+      to: "supporteduschedular@gmail.com",
+      toName: "EduScheduler Admin",
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+    });
   } catch (error) {
     console.error("Support notification error:", error);
     return { success: false, error: error.message };
